@@ -1,0 +1,40 @@
+Introduction
+
+- Brief introduction to gene expression data and how it can be used to classify (diseases, agriculture)
+- Brief introduction to semi-supervised learning and why it's useful for biological data
+- Brief introduction to autoencoders
+- Related and previous work
+
+Preparation
+
+- (Very brief introduction to perceptrons)
+- Introduction to autoencoders, denoising autoencoders, variational autoencoders - talk about manifold, intuition, maths
+- Dimensionality reduction
+- SDAE
+- Kingma models
+- Ladder
+- Saliency - what it is
+- MNIST dataset
+- TCGA dataset
+- why I chose to use Pytorch
+- backing up and stuff
+
+Implementation
+
+- Concrete algorithm details for models
+- Issues with code and how they were solved
+- How the code can be used, etc (CLI)
+- Reasons for using MNIST while implementing
+- Hyperparameter selection - early stopping, layers, constant learning rate
+
+Evaluation
+
+- MNIST results
+- comparison of models and explanation
+- saliency maps (check if they're any good)
+
+- TCGA results
+- comparison and explanation
+- saliency maps - compare most important genes with those found in other papers
+
+Conclusion
