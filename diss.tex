@@ -345,11 +345,7 @@ in the network flows forward from layer to layer, with no connections allowing t
 
 The main reason for neural networks with multiple layers is that they can model much more \textbf{complex non-linear relationships} than single 
 neurons and single layer models are able to. Using non-linear activation functions such as ReLU \eqref{eq:relu} allow neurons to model simple 
-non-linear functions, and combining
-these into layers allows them to model these more complex non-linear relationships. An example given in \textit{Deep Learning}~\cite{Goodfellow-et-al-2016} 
-is that of modelling the XOR function. A single neuron is unable to model XOR as it is impossible to separate the cases 
-correctly with a single line. By adding a hidden layer of two neurons using the ReLU activation function the data is 
-transformed into a different feature space at the hidden layer that makes the solutions linearly separable. [Include a diagram]
+non-linear functions, and combining these into layers allows them to model these more complex non-linear relationships.
 
 I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the trainable parameters of the neural
 network (in the simplest case the weights).
@@ -378,7 +374,7 @@ the one hot labels would be $[1, 0, 0]$ , $[0, 1, 0]$ and $[0, 0, 1]$. The netwo
 This provides no implicit ordering over the classes (a problem found in integer coding) as each output node is equally important to the 
 network \cite{WhyOneHo55:online}.
 
-The output from the network is then a real number for each class. This does not lend itself easily to a cost function (more explanation
+The output from the network is then a real number for each class. This does not lend itself easily to a loss function (more explanation
 in next section) and can also be difficult to interpret for humans. Therefore the \textbf{softmax} function is used as the activation function
 in the ouput layer:
 \begin{align} \label{softmax}
@@ -387,7 +383,7 @@ in the ouput layer:
 
 This give a value in the range $[0,1]$ for every class, the sum of which is $1$. It is now possible to view the output of the model as a 
 probability distribution over the classes~\cite{10.1007/978-3-642-76153-9_28}, which allows the model to encode uncertainty and is easily interpretable by humans. It also lends 
-itself well to a loss function (described in the next section).
+itself well to a loss function.
 
 \subsection{Training the network}
 
@@ -490,6 +486,7 @@ on the training set and cause the model to converge to a good approximation to t
   \caption{Train neural network via mini-batch gradient descent} 
   \label{alg:train}
 \end{algorithm}
+
 \section{The manifold hypothesis}
 
 The \textbf{dimensionality} of data is the number of features needed to specify the data. For example, a very popular machine learning dataset
@@ -530,7 +527,7 @@ between 0 and 255 the picture would look like random noise, leading to the concl
   \label{fig:digit}
 \end{figure}
 
-What the manifold hypothesis leads to then is the idea of \textbf{non-linear dimensionality reduction} techniques. By finding this lower dimensional
+The manifold hypothesis then leads to \textbf{non-linear dimensionality reduction} techniques. By finding this lower dimensional
 mainfold the data can be explained with fewer features and possibly be more easily seperated and classified. Going back to the paper example,
 linear dimensionality reduction techniques (e.g. principal component analysis) would be able to find the 2D embedding if the paper were 
 rotated, translated or stretched, but would be unable to unscrunch the paper, as that amounts to a non-liner embedding. Autoencoders are 
@@ -1024,7 +1021,7 @@ noisy and the second being clean. A final overview of the training process is th
 \section{Requirements analysis}
 
 By taking the success criteria from the project proposal (Appendix ~\ref{proposal}) I constructed a set of tasks that must be completed for the 
-project and rank them by their priority. The success criteria are listed below:
+project and ranked them by their priority. The success criteria are:
 
 \begin{itemize}
   \item The implemented models achieve close to original paper performance on the MNIST dataset 
@@ -1064,7 +1061,7 @@ With these models selected and the success criteria defined above the requiremen
   Implement semi-supervised autoencoder & High \\
   Semi-supervised autoencoder achieves close to original paper \\ accuracy on MNIST & Medium \\
   Implement ladder network & High \\
-  Ladder network achieves close to original paper accuracy & Medium \\
+  Ladder network achieves close to original paper accuracy \\ on MNIST & Medium \\
   Process the Cancer Genome Atlas gene expression data & High \\
   Evaluate and compare performance of models on MNIST & Low \\
   Evaluate and compare performance of models on TCGA data & High \\
@@ -1076,7 +1073,7 @@ With these models selected and the success criteria defined above the requiremen
 
 \section{Starting point and reading} \label{reading}
 
-I had some previous experience with neural networks and machine learning techniques through completing \textit{Introduction to data science}
+I had some previous knowledge about neural networks and machine learning techniques through completing \textit{Introduction to data science}
 and \textit{Artificial intelligence I} as part of Part IB, and completing the machine learning course by Andrew Ng on Coursera. However,
 I had no previous experience with autoencoders, semi-supervised learning or Bayesian inference, and also little experience of optimising 
 a machine learning model. To this end I decided upon a list of essential reading:
@@ -1106,7 +1103,7 @@ access all the variables in a model at any time. The training is also more intui
 and backpropagation done within a for loop over the dataset. In Tensorflow the variable to optimise is defined before looping and the 
 backpropagation is done automatically by the Session object.
 
-I used the PyCharm IDE for writing my Python code as I was familiar with Jetbrains IDEs having using IntelliJ IDEA for Java development.
+I used the PyCharm IDE for writing my Python code as I was familiar with Jetbrains IDEs.
 PyCharm includes useful features like autocomplete, and has good integration with git.
 
 \subsection{Hardware}
@@ -1351,7 +1348,8 @@ ensure the project is a success.
 
 Backpropagation is the flow of information from the outputs of the network back through the network. Once the cost function has been computed
 finding the gradient of the loss with respect to each trainable parameter shows which direction the parameter can be shifted to decrease 
-the loss function.. This derivation of the backpropagation algorithm is taken  In the derivations below:
+the loss function.. This derivation of the backpropagation algorithm is based on that found in \textit{Artificial intelligence I}~\cite{Art_Int}.
+In the derivations below:
 \begin{itemize}
   \item $J(\vec{\theta})_k$ is the cost function for the $kth$ sample in the training set
   \item $w_{i \to j}$ is the weight between node $i$ and node $j$
