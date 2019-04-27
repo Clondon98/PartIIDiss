@@ -1098,10 +1098,7 @@ Tensorflow. Both frameworks are computationally similar, using a tape-based auto
 engine for speed. After reading through an introduction to both languages, and looking at a comparison of the features offered I decided to 
 use PyTorch, as it felt more flexible, allowing the user to easily stop and start training at any point, and allowing much easier access 
 to intermediate variables for debugging. In Tensorflow all operations have to be run using a Session object, and the only variables a 
-user can see are those returned from the session object. PyTorch seems to me to have better integration with Python, allowing the user to 
-access all the variables in a model at any time. The training is also more intuitive in PyTorch, with all the calculations of the loss 
-and backpropagation done within a for loop over the dataset. In Tensorflow the variable to optimise is defined before looping and the 
-backpropagation is done automatically by the Session object.
+user can see are those returned from the session object.
 
 I used the PyCharm IDE for writing my Python code as I was familiar with Jetbrains IDEs.
 PyCharm includes useful features like autocomplete, and has good integration with git.
@@ -1130,12 +1127,20 @@ ensure the project is a success.
 \section{Model and class structure}
 
 \section{Hyperparameter optimisation}
-While the weights and biases in a network can be trained by backpropagation, there are parameter of the network that cannot be trained in 
-this way, but still affect the performance of the network. These are hyperparameters and they are set before the training begins. The best 
-hyperparameters are then selected by training the model with different combinations and taking the model that performs best on a validation
-set.
+While the weights and biases in a network can be trained by backpropagation, there are parameters of the network that cannot be trained in 
+this way, but still affect the performance of the network. These are hyperparameters and they are set before the training begins. 
+Optimising these can be crucial in getting the best performance from a model.
 
-\subsection{Number of layers}
+\subsection{Grid search}
+The most common method for hyperparameter optimisation, and the one used in this project, is grid search. The researcher provides several 
+likely values for the hyperparameters, and the model is trained with each combination of these. A validation set is used to compare the
+performance of the models, and the best set of hyperparameters is selected this way.
+
+However, optimising hyperparameters this way results in every combination having to be run again for each additional value of each
+hyperparameter used. Depending on how long it takes each model to train, this can result in hours more training time. 
+Therefore, I have only chosen to optimise over a small number of hyperparameters that I feel are most likely to affect the performance of the models.
+
+\subsection{Number of hidden layers}
 The number of layers in a model is important because it controls the capacity~\cite{Goodfellow-et-al-2016} of the neural network. If the 
 capacity of the network is too high it can \textbf{overfit} to the training data, resulting in poor generalization to new examples, and if the capacity is 
 too low it can \textbf{underfit}, resulting in poor accuracy. Therefore choosing the number of layers is an important hyperparameter.
@@ -1143,7 +1148,39 @@ The universal approximation theorem states that a neural network with a single h
 has to be exponentially large to give the same capacity as a multi-layer network; instead adding new layers is the preferred method, 
 with the deeper layers learning more complex and relevant features to the task.
 
-Larochelle et al. 
+\subsection{Hidden layer size}
+Larochelle et al.~\cite{DBLP:journals/jmlr/LarochelleBLL09} found that neural networks with constant layer size usually perform better than
+those where the layer size increases or decreases throughout the network. When optimising the number of layers I use a constant layer size
+for each hidden layer.
+
+Bengio et al.~\cite{DBLP:series/lncs/Bengio12} found that using a first hidden layer larger than the input layer often resulted in 
+better performance. However due to the high dimensionality of gene expression data (over 20,000 genes in the TCGA data) I decided against 
+this. I use a constant layer size for all the hidden layers, using the same layer size for all the different models to allow for a fairer
+comparison.
+
+\subsection{Latent dimension of autoencoders}
+The size of the latent dimension for an autoencoder affects the quality of the representation learned. If the dimension is too small the 
+autoencoder may not be able to encode all the important features, whereas a latent dimension that is too large can give the autoencoder 
+too much freedom, causing it to not cluster important samples together.
+
+\subsection{Learning rate}
+The learning rate is a hyperparameter that controls how large of a step is taken each time the weights are updated. It is an often
+optimised hyperparameter in that if it is too large it can overshoot loss minima, resulting in worse performance, and if it is too 
+small it can take a very long time for the gradient descent to converge. However, I have chosen not to search over different learning 
+rates because of the additional time it would take, and the fact that I am using the Adam optimizer. The Adam optimizer keeps a 
+learning rate per parameter, and updates these learning rates according to the first and second moments of the gradients with respect to each 
+parameter~\cite{DBLP:journals/corr/KingmaB14}. This means that while an initial learning rate still has to be provided, it affects the 
+performance much less.
+
+\subsection{Early stopping}
+The number of epochs that a learning algorithm is trained for also affect how well it performs. Not training for long enough can result in
+poor peformance and underfitting, as the model has not had enough time to learn the relevant features, while training for too long can
+be wasted compute time if the model is not improving, or even lead to overfitting.
+
+Luckily, this is one of the easiest hyperparameters to optimise, and does not have to be included in a grid search. 
+With the use of a validation set that the network is not trained on the performance of each model can be measured after every epoch. 
+If the performance has improved the state of the model is saved. After a certain number of epochs without the performance improving 
+the training is stopped, and the best performing model state is loaded.
 
 \section{Pipeline}
 
