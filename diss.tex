@@ -1130,6 +1130,20 @@ ensure the project is a success.
 \section{Model and class structure}
 
 \section{Hyperparameter optimisation}
+While the weights and biases in a network can be trained by backpropagation, there are parameter of the network that cannot be trained in 
+this way, but still affect the performance of the network. These are hyperparameters and they are set before the training begins. The best 
+hyperparameters are then selected by training the model with different combinations and taking the model that performs best on a validation
+set.
+
+\subsection{Number of layers}
+The number of layers in a model is important because it controls the capacity~\cite{Goodfellow-et-al-2016} of the neural network. If the 
+capacity of the network is too high it can \textbf{overfit} to the training data, resulting in poor generalization to new examples, and if the capacity is 
+too low it can \textbf{underfit}, resulting in poor accuracy. Therefore choosing the number of layers is an important hyperparameter.
+The universal approximation theorem states that a neural network with a single hidden layer can approximate any function, but the layer 
+has to be exponentially large to give the same capacity as a multi-layer network; instead adding new layers is the preferred method, 
+with the deeper layers learning more complex and relevant features to the task.
+
+Larochelle et al. 
 
 \section{Pipeline}
 
