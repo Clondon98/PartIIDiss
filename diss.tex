@@ -1122,64 +1122,9 @@ ensure the project is a success.
 
 \chapter{Implementation}
 
-\section{Data processing}
-
-\subsection{Datasets}
-
-During the course of this model I ran my models on three different datasets.
-
-\subsubsection{MNIST handwritten digit database}
-
-The MNIST dataset is one of the most popular in machine learning, being used to benchmark new models is many papers.
-
-\begin{table}[H]
-  \label{tab:requirements}
-  \small % text size of table content
-  \centering % center the table
-  \begin{tabular}{lccr} % alignment of each column data
-  \toprule[\heavyrulewidth]
-  Samples & 60,000 train \& 10,000 test \\
-  Input Dimensionality & 784 - 28x28 b/w images  \\
-  Number of classes & 10 - digits 0-9 \\
-  Balanced & Yes \\
-  \bottomrule[\heavyrulewidth] 
-  \end{tabular}
-  \caption{MNIST dataset} 
-\end{table}
-
-In this project it is again used for benchmarking, and for ensuring that the models are performing similarly to their original implementations.
-It does have several similarities with gene expression data though, being highly dimensional, but with only a few features being relevant to 
-classification. In general, only a very few pixels are actually needed to distinguish between the different digits (and most pixels near the 
-edge of the image are completely useless, being black in almost all the images), while in gene expression it is usually only a few genes 
-that control each phenotype.
-
-\subsection{The Cancer Genome Atlas}
-
-The Cancer Genome Atlas is a project cataloguing sequencing data for several different types of cancer. This data is then freely available,
-and in this project I used data computed using RNA-Seq to attempt to classify the different types of cancer using only their gene expression.
-
-\begin{table}[H]
-  \label{tab:requirements}
-  \small % text size of table content
-  \centering % center the table
-  \begin{tabular}{lccr} % alignment of each column data
-  \toprule[\heavyrulewidth]
-  Samples & 11,060 \\
-  Input Dimensionality & 20,350 \\
-  Number of classes & 33 \\
-  Balanced & No \\
-  \bottomrule[\heavyrulewidth] 
-  \end{tabular}
-  \caption{MNIST dataset} 
-\end{table}
-
-The statistics in the table are for the entire dataset I'm using. However, some of the samples are missing genes, and for the testing of the
-semi-supervised models I discard these samples to use only those with complete data. However, data imputation is an important topic in 
-genomics, and I talk about this in Section .
-
 \section{Model and class structure}
 
-\section{Hyperparameter optimisation}
+\section{Hyperparameter optimisation} \label{hyper}
 While the weights and biases in a network can be trained by backpropagation, there are parameters of the network that cannot be trained in 
 this way, but still affect the performance of the network. These are hyperparameters and they are set before the training begins. 
 Optimising these can be crucial in getting the best performance from a model.
@@ -1216,6 +1161,9 @@ The size of the latent dimension for an autoencoder affects the quality of the r
 autoencoder may not be able to encode all the important features, whereas a latent dimension that is too large can give the autoencoder 
 too much freedom, causing it to not cluster important samples together.
 
+This hyperparameter is only important for the M1 and M2 models as the hidden dimensions for the autoencoder is the layer size in the SDAE,
+and the number of classes in the ladder network.
+
 \subsection{Learning rate}
 The learning rate is a hyperparameter that controls how large of a step is taken each time the weights are updated. It is an often
 optimised hyperparameter in that if it is too large it can overshoot loss minima, resulting in worse performance, and if it is too 
@@ -1234,6 +1182,120 @@ Luckily, this is one of the easiest hyperparameters to optimise, and does not ha
 With the use of a validation set that the network is not trained on the performance of each model can be measured after every epoch. 
 If the performance has improved the state of the model is saved. After a certain number of epochs without the performance improving 
 the training is stopped, and the best performing model state is loaded.
+
+\section{Data processing}
+
+\subsection{Datasets}
+
+During the course of this model I ran my models on three different datasets.
+
+\subsubsection{MNIST handwritten digit database}
+
+The MNIST dataset is one of the most popular in machine learning, being used to benchmark new models is many papers.
+\begin{table}[H]
+  \label{tab:requirements}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{lccr} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 60,000 train \& 10,000 test \\
+  Inputs & 28x28 b/w images  \\
+  Number of classes & 10 - digits 0-9 \\
+  Balanced & Yes \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+
+In this project it is again used for benchmarking, and for ensuring that the models are performing similarly to their original implementations.
+It does have several similarities with gene expression data though, being highly dimensional, but with only a few features being relevant to 
+classification. In general, only a very few pixels are actually needed to distinguish between the different digits (and most pixels near the 
+edge of the image are completely useless, being black in almost all the images), while in gene expression it is usually only a few genes 
+that control each phenotype.
+
+\subsubsection{The Cancer Genome Atlas}
+
+The Cancer Genome Atlas is a project cataloguing sequencing data for several different types of cancer. The data generated by the TCGA Research 
+Network (https://www.cancer.gov/tcga) is available online at https://portal.gdc.cancer.gov. In this project I used data generated using 
+RNA-Seq to attempt to classify the different types of cancer using only their gene expression.
+\begin{table}[H]
+  \label{tab:requirements}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{lccr} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 11,060 \\
+  Inputs & 20,352 genes with values given as $\log_{2}(\text{TPM}+1)$ \footnotemark \\
+  Number of classes & 33 - different cancer types\\
+  Balanced & No \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+\footnotetext{TPM is transcripts per million, where the total number of reads mapped to a gene is normalised by the length of the gene} 
+
+The statistics in the table are for the entire dataset. However, some of the samples are missing expression values for certain genes, and 
+for the testing of the semi-supervised models I discard these samples to use only those with complete data. Data imputation is still an 
+important topic in genomics, and I talk about this in Section .
+
+\subsubsection{METABRIC}
+
+The METABRIC dataset is a dataset of the gene expression data of breast cancer samples. The task with this data was to classify whether 
+a tumour was to predict whether a patient was ER+ or ER-. ER+ cancers have cells containing receptor proteins that bind to estrogen, 
+and so can be treated using substances that block the binding of estrogen, whereas ER- cancers must be treated in a different way.
+\begin{table}[H]
+  \label{tab:requirements}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{lccr} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 1980 \\
+  Inputs & 1000 genes \\
+  Number of classes & 2 - whether the cancer is ER+ or ER- \\
+  Balanced & No \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+
+\subsection{Data normalisation}
+
+Data normalisation can help neural networks by allowing gradient descent to reach a minima more easily. Features having large ranges
+can result in larger gradients of the loss, resulting in larger steps being taken at the weights. This can cause the 
+gradient descent to oscillate around minima and take far longer to reach a good value. The two most common forms of data normalisation 
+are standardisation and normalisation to the range [0-1]. Having all the features with similar scales is also important for saliency computation,
+as different scales result in different gradients of the output with respect to the input, preventing them from being directly comparable.
+
+\begin{itemize}
+  \item \textbf{Standardisation} involves scaling all the features so that they have mean 0 and variance 1. This is done be computing the mean 
+          and standard deviation of the features from the training set, and then subtracting the mean from each feature and dividing by the
+          standard deviation.
+  \item \textbf{Normalisation} into the range [0-1] is done by finding the maximum and the minimum for every feature from the training set,
+          subtracting the minimum from every feature and dividing by the maximum minus the minimum.
+\end{itemize}
+
+For the MNIST dataset I used normalisation, as the pixels take values between 0 and 255 and so scaling this to be between 0 and 1 is 
+a simple and intuitive transform. It is also the transform used in the code for the ladder network paper~\cite{DBLP:journals/corr/RasmusVHBR15}, 
+and similar to the transform used in the semi-supervised VAE paper~\cite{DBLP:journals/corr/KingmaRMW14} (here they set pixel values to 
+either zero or one, without the range inbetween).
+
+For the gene expression datasets I tried both standardisation and normalisation. Standardisation worked well for the non-VAE based models,
+but the M1 and M2 models experienced significant numeric instability, resulting in the variances of the latent dimension becoming very small,
+which eventually lead to the output of the autoencoder becoming \texttt{nan}. Normalisation did not have those problems, and the non-VAE
+based models performed equally well, so this was transform used.
+
+\subsection{Data imputation}
+
+The TCGA dataset contains the gene expression levels for 20,350 genes, but in many of the samples some of these genes are missing.
+This can be dealt with by simply discarding the samples with missing genes, but this can be a significant number of samples, and removing 
+a large chunk of the dataset is not a good way to improve a model. Instead it may be possible to impute the missing genes, or drop the 
+genes entirelt, reducing the number of features but keeping the number of samples. In the evaluation section there is a brief comparison 
+of the performance of dropping the genes, replacing the missing values with the feature mean, and replacing the missing values with zero.
+
+\subsection{Data partitioning}
+
+In order to perform hyperparameter optimisation (Section~\ref{hyper}) the data needs to be split into training and validation sets, to 
+compare the performance of each set of hyperparameters 
 
 \section{Pipeline}
 
