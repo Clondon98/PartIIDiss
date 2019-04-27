@@ -1122,7 +1122,60 @@ ensure the project is a success.
 
 \chapter{Implementation}
 
-\section{Dealing with data}
+\section{Data processing}
+
+\subsection{Datasets}
+
+During the course of this model I ran my models on three different datasets.
+
+\subsubsection{MNIST handwritten digit database}
+
+The MNIST dataset is one of the most popular in machine learning, being used to benchmark new models is many papers.
+
+\begin{table}[H]
+  \label{tab:requirements}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{lccr} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 60,000 train \& 10,000 test \\
+  Input Dimensionality & 784 - 28x28 b/w images  \\
+  Number of classes & 10 - digits 0-9 \\
+  Balanced & Yes \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+
+In this project it is again used for benchmarking, and for ensuring that the models are performing similarly to their original implementations.
+It does have several similarities with gene expression data though, being highly dimensional, but with only a few features being relevant to 
+classification. In general, only a very few pixels are actually needed to distinguish between the different digits (and most pixels near the 
+edge of the image are completely useless, being black in almost all the images), while in gene expression it is usually only a few genes 
+that control each phenotype.
+
+\subsection{The Cancer Genome Atlas}
+
+The Cancer Genome Atlas is a project cataloguing sequencing data for several different types of cancer. This data is then freely available,
+and in this project I used data computed using RNA-Seq to attempt to classify the different types of cancer using only their gene expression.
+
+\begin{table}[H]
+  \label{tab:requirements}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{lccr} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 11,060 \\
+  Input Dimensionality & 20,350 \\
+  Number of classes & 33 \\
+  Balanced & No \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+
+The statistics in the table are for the entire dataset I'm using. However, some of the samples are missing genes, and for the testing of the
+semi-supervised models I discard these samples to use only those with complete data. However, data imputation is an important topic in 
+genomics, and I talk about this in Section .
 
 \section{Model and class structure}
 
