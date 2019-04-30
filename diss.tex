@@ -210,60 +210,14 @@ The function computed by the neuron is then:
   y = \sigma(\vec{x} \cdot \vec{w})
 \end{equation}
 
-\begin{figure}[H]
-  \begin{center}
-      \begin{tikzpicture}
-        \tikzstyle{place}=[circle, draw=black, minimum size = 8mm]
-        
-         % Output
-         \node at (4, -3*1.25) [circle split, draw=black, minimum size = 14mm, rotate=90] (out) 
-         {\rotatebox{-90}{$\Sigma$} \nodepart{lower} \rotatebox{-90}{$\sigma$}};
-
-        % Input
-        \foreach \x in {1,...,3}
-          \draw node at (0, -\x*1.25) [place] (input_\x) {$x_\x$};
-        \foreach \x in {1,...,3}
-          \fill (0, -4.5 -\x*0.3) circle (1pt);
-        \draw node at (0, -5*1.25) [place] (input_n) {$x_n$};
-
-        % Bias
-        \node at (4, -1.25) [place] [label={Bias}] (bias) {$1$};
-
-        % Function
-        \node at (8, -3*1.25) [] (func) {$y = \sigma(\vec{x} \cdot \vec{w})$};
-
-        % Bias -> Out
-        \draw [->] (bias) -- (out) node [left, midway] {$w_0$};
-          
-        % Input -> Out
-        \foreach \i in {1,...,3}
-          \draw [->] (input_\i) -- (out) node [above, midway] {$w_\i$};
-        \draw [->] (input_n) -- (out) node [above, midway] {$w_n$};
-        \path[->] (out) edge node[] {} (func);
-        
-        % Text
-        \node at (0, -7.5) [black, ] {Input Features};
-        \node at (8, -4.5) [black, ] {Output};
-      \end{tikzpicture}
-      \caption{A perceptron}
-      \label{fig:illustration_perceptron}
-  \end{center}
-\end{figure}
-
 The activation function applied will depend on what the neuron is being used for.
-Some common activation functions and their uses are~\cite{Art_Int}:
+The main activation functions used in this project are:
 \begin{itemize}
   \item \textbf{Linear}
         \begin{equation}
           \sigma(z) = z
         \end{equation}
         Used in regression problems, when a real-valued output that can take any value is required.
-  \item \textbf{Sigmoid}
-        \begin{equation}
-          \sigma(z) = \frac{1}{1 + e^{-z}}
-        \end{equation}
-        Used to give output values in the range $[0,1]$, for example to give a probability of a class in binary classification (two classes).
-        Was previously used as the non-linear function in hidden layers but has seen reduced usage with the increased popularity of ReLU.
   \item \textbf{ReLU}
         \begin{equation}
           \sigma(z) = max(0, z)
@@ -273,13 +227,13 @@ Some common activation functions and their uses are~\cite{Art_Int}:
         complicated functions. Has seen massive uptake due to performance benefits over sigmoid~\cite{relu}.
 \end{itemize}
 
-\subsection{Deep feedforward networks}
+\subsection{Multilayer perceptrons}
 
-Deep feedforward networks are made up of multiple perceptrons arranged into \textbf{layers} (and are often called multilayer perceptrons). 
+Multilayer perceptrons are made up of multiple perceptrons arranged into \textbf{layers}. 
 Each neuron in a layer has its own set of weights
 $\vec{w}$ and takes the ouputs of the previous layer (or the inputs to the network if the neuron is in the first layer) $\vec{x}$ in order to compute the 
 output value $y$ for the neuron. This value is then used as an input to the next layer, or part of the output of the network if the neuron is in
-the output layer. (N.B. I will use the terms deep feedforward network and neural network interchangably).
+the output layer.
 \begin{figure}[H]
   \begin{center}
       \begin{tikzpicture}
@@ -338,39 +292,24 @@ the output layer. (N.B. I will use the terms deep feedforward network and neural
         \node at (8, -6) [black, ] {Hidden Layer 2};
         \node at (12, -6) [black, ] {Output Layer};
       \end{tikzpicture}
-      \caption{Illustration of a 4-layer deep feedforward network}
+      \caption{Illustration of a 4-layer multilayer perceptron}
       \label{fig:illustration_deep_network}
   \end{center}
 \end{figure}
-
-The primary source of the following information is \textit{Deep Learning} by Goodfellow et al.~\cite{Goodfellow-et-al-2016}. 
-The naming convention \textbf{deep} comes about because the networks contain multiple layers. Deep is usually used to refer to networks 
-with multiple hidden layers. \textbf{Feedforward} comes from the fact that information 
-in the network flows forward from layer to layer, with no connections allowing the information to move backwards to previous layers.
-
-The main reason for neural networks with multiple layers is that they can model much more \textbf{complex non-linear relationships} than single 
+ 
+The main reason for neural networks with multiple layers is that they can model much more \textbf{complex non-linear relationships}
+~\cite{Goodfellow-et-al-2016}. than single 
 neurons and single layer models are able to. Using non-linear activation functions such as ReLU \eqref{eq:relu} allow neurons to model simple 
 non-linear functions, and combining these into layers allows them to model these more complex non-linear relationships.
 
 I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the trainable parameters of the neural
-network (in the simplest case the weights).
+network.
 
-\subsection{Supervised learning}
+\subsection{Neural networks for classification}
 
-There are two main problems that neural networks are usually used to solve: \textbf{regression} and \textbf{classification}~\cite{ML_Bayes}:
-\begin{itemize}
-  \item Regression problems involve predicting the value of a quantity that is continuous and real-valued: $f_{\vec{\theta}}(\vec{x}) \in \mathbb{R}$. 
-  \item Classification problems involve predicting which class (of a pre-determined set) an input belongs to: $f_{\vec{\theta}}(\vec{x}) \in [l_0,...,l_n]$.
-\end{itemize}
-
-Supervised learning involves taking a \textbf{dataset} $s=((\vec{x_0}, y_0),...,(\vec{x_n}, y_n))$ and using that to train a network to find a function 
-that gives good predictions for $y$ given $\vec{x}$: $f_{\vec{\theta}}(\vec{x}) = \hat{y} \approx y$.
-
-\subsubsection{Neural networks for classification}
-This project has focused exclusively on classification problems, and so a more in-depth description is necessary.
-
-A dataset for classification training is given as pairs of numerical \textbf{features} and a \textbf{label}: $(\vec{x}, y)$. These features are the input to our network,
-and the label is our target. A label cannot be directly utilised by the a neural network as they operate on numerical data. Therefore it is 
+A dataset for classification training is given as pairs of numerical \textbf{features} and a \textbf{label}: $(\vec{x}, y)$. These features are 
+the input to the network,
+and the label is the target. A label cannot be directly utilised by the a neural network as they operate on numerical data. Therefore it is 
 necessary to transform the data into a numerical representation.
 
 \textbf{One-hot encoding} assigns an integer $i$ to each class and makes a vector of length $n$ (where $n$ is the 
@@ -379,49 +318,16 @@ the one hot labels would be $[1, 0, 0]$ , $[0, 1, 0]$ and $[0, 0, 1]$. The netwo
 This provides no implicit ordering over the classes (a problem found in integer coding) as each output node is equally important to the 
 network \cite{WhyOneHo55:online}.
 
-The output from the network is then a real number for each class. This does not lend itself easily to a loss function (more explanation
-in next section) and can also be difficult to interpret for humans. Therefore the \textbf{softmax} function is used as the activation function
-in the ouput layer:
-\begin{align} \label{softmax}
-  \sigma(y_j) = \frac{e^{y_j}}{\sum_{i=1}^{K} e^{y_i}},  &\text{ for the $jth$ output in K output values}
-\end{align}
-
-This give a value in the range $[0,1]$ for every class, the sum of which is $1$. It is now possible to view the output of the model as a 
-probability distribution over the classes~\cite{10.1007/978-3-642-76153-9_28}, which allows the model to encode uncertainty and is easily interpretable by humans. It also lends 
-itself well to a loss function.
+The \textbf{loss} of the network is the difference between the output of the network and the correct label. Concrete details are given 
+in the implementation, but loss should be high when the network is performing poorly, and low when it is performing well.
 
 \subsection{Training the network}
 
 Neural networks usually have their weights initialised to small random values. This means that on the first pass
-the output of the network will likely be very far from the correct value. The difference between the correct
-value and the network output is called the \textbf{loss}. Training a neural network involves adjusting its
-trainable parameters ($\vec{\theta}$) until the network reaches an acceptable loss or accuracy. This is done by computing
-a loss function, which measures how well a neural network is performing on the training set, and updating the parameters to decrease the loss.
-
-\subsubsection{Loss functions}
-
-The two main loss functions used in this project are \textbf{mean square error} and \textbf{cross entropy} loss:
-\begin{itemize}
-  \item \textbf{Mean square error}
-        \begin{align}
-          J(\vec{\theta}) = \frac{1}{n}\sum_{i=1}^{n} (f_{\vec{\theta}}(\vec{x}^i) - y^i)^2 \label{eq:mse}
-        \end{align}
-        The mean square error is the mean of the squared difference between the real values and the 
-        predicted values for multiple datapoints. If the output from the network and the correct values are 
-        vectors it is calculated by taking the Euclidean distance between them ($|f_{\vec{\theta}}(\vec{x}^i) - \vec{y}^i|^{2}$) 
-        and squaring it. This loss function is defined for all real numbers and so is used in regression problems. 
-        It is also used as the reconstruction loss in most of the autoencoders in this project.
-  \item \textbf{Cross entropy}
-        \begin{align}
-          J(\vec{\theta}) = - \frac{1}{n}\sum_{i=1}^{n} \vec{y}^i \cdot \log{f_{\vec{\theta}}(\vec{x}^i)} \label{eq:ce}
-        \end{align}
-        This loss function is used for multiclass classification problems. $\vec{y}^i$ is the one-hot 
-        representation of the label, and the scalar product is taken with the logarithm of the softmax output 
-        probabilities. This comes out to $\log{f_{\vec{\theta}}(\vec{x}^i)_j}$ where the $jth$ label is the correct one.
-        Taking the negative of this means that if the probability of the correct label is high then the loss is 
-        very low ($\lim_{x \to 1} -\log{x} = 0$) and if the probability is low then the loss is very high 
-        ($\lim_{x \to 0} -\log{x} = \infty$).
-\end{itemize}
+the output of the network will likely be very far from the correct value. Training a neural network involves adjusting its
+trainable parameters ($\vec{\theta}$) until the network reaches an acceptable loss or accuracy. This is done by computing 
+the gradients of the trainable parameters with respect to the loss, and updating the parameters to move the loss towards 
+a minima.
 
 \subsubsection{Updating the weights}
 
@@ -448,26 +354,15 @@ $\eta$ is a \textbf{hyperparameter}. Hyperparameters are parameters of the model
 $\eta$ is called the \textbf{learning rate} and controls how large of a step is taken each time the weight is updated. If the learning rate is 
 too high the weights can ``jump" over minima, and even diverge out of a minima, but if the rate is too low it can take too long to converge,
 or get stuck in a less desirable local minima. The step size is also proportional to the magnitude of the gradient, allowing the optimizer to 
-take a larger step towards a minima if the gradient is steeper
-
-The basic form of gradient descent outlined above uses one constant learning rate ($\eta$) for updating all
-of the weights in the network. Recently most neural network implementations have instead used \textbf{Adam}, an adaptation of gradient descent that holds
-a learning rate per trainable parameter, and updates this based on the mean and variance of the gradients.
+take a larger step towards a minima if the gradient is steeper.
 
 \subsubsection{Batch learning}
 
-The reason for including a summation term over training set samples in both the loss functions (\eqref{eq:mse} \& \eqref{eq:ce}) and the weight update rule \eqref{eq:weight}
-is because neural networks are generally run over multiple samples each time they are run, rather than being run over a single example. When performing gradient descent there
-are three main ways:
-\begin{itemize}
-  \item \textbf{Stochastic} gradient descent is computed over a single sample per iteration.
-  \item \textbf{Mini-batch} gradient descent uses multiple samples per iteration, but less than the whole dataset.
-  \item \textbf{Batch} gradient descent uses the entire dataset per iteration
-\end{itemize}
-
-The most popular of these approaches is mini-batch, as it has stability advantages over stochastic and computational advantages over batch. Stochastic gradient
-descent has more noise as each update is based on an individual example, causing the weights to jump around more. It also doesn't take advantage of the 
-parallelisation possiblity of much hardware - it's much more efficient to send multiple sampels through at once. Batch has the problem of storing the whole 
+A neural network is generally run over multiple samples for each iteration, but not all the samples in the dataset. This is called 
+mini-batch gradient descent and it is the most popular because it has stability advantages over stochastic gradient descent (one sample at a time)
+and computational advantages over batch (the entire dataset every iteration). 
+Stochastic gradient descent has more noise as each update is based on an individual example, causing the weights to jump around more. It also doesn't take advantage of the 
+parallelisation possiblity of much hardware - it's much more efficient to send multiple samples through at once. Batch has the problem of storing the whole 
 dataset in memory, and only making one update per pass through the dataset can mean the model takes longer to converge to the best parameters. Mini-batch manages to
 have less noise than stochastic due to averaging over multiple samples, while also taking advantage of parallelisation and not requiring huge amounts of memory.
 
