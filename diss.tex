@@ -1378,7 +1378,7 @@ of the performance of dropping the genes, replacing the missing values with the 
 However, to remove any effect of the imputation on the semi-supervised comparisons I removed the samples containing missing genes, leaving 
 9310 samples. 
 
-\subsection{Data partitioning}
+\subsection{Data partitioning} \label{part}
 \subsubsection{Evaluating models and hyperparameter optimisation}
 Evaluating the performance of a machine learning algorithm should be done on a test dataset that is separate from the dataset the 
 algorithm is trained on, to prevent overfitting leading to overestimating the performance of the model. If the dataset is not particularly 
@@ -1475,6 +1475,9 @@ to a fully supervised MLP operating on only the labelled data. I then discuss ho
 tool.
 
 \section{MNIST results}
+The MNIST results are important for establishing whether the ladder and M2 models have been correctly implemented, as they should 
+achieve close to paper accuracy. It should also give some indication of how the models are expected to perform on the gene expression data.
+
 The MNIST dataset has a designated train and test set, so to obtain the results for this I performed 5-fold cross validation over the 
 training set, using 48,000 examples for testing and 12,000 for validation and then computing the accuracy of the model on the 10,000
 test samples. The results obtained for this were:
@@ -1557,7 +1560,34 @@ Computing a paired t-test helps discern if any one method could be considered be
 
 None of these t statistics are statistically significant using a two-tailed t-test with p=0.05, and so we cannot reject the null hypothesis
 that all the imputation methods have the same performance. However, dropping the genes makes the least sense, as that way some real data is
-lost. In the command line tool produced at the end any imputation is done using the mean value. 
+lost. In the command line tool produced at the end any imputation is done using the mean value.
+
+\subsection{Semi-supervised results}
+
+The results in this section were obtained by computing cross-validation as in Section~\ref{part}. All samples with missing data were 
+dropped from the dataset to avoid bias due to the imputation type. 
+
+One caveat with these results is that they represent an upper bound on the performance of the models, as a validation set is used that is 
+sometimes larger than the number of labelled examples in the training set. This is obviously not feasible in real life, and so the 
+results when used in a production setting will likely not be as good. However, this validation set was required for a fair comparison,
+as the number of layers and epochs that get the best performance from each model greatly differs from model to model.
+\begin{table}[H]
+  \label{tab:tcga}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{R|CCCCC} % alignment of each column data
+  \toprule[\heavyrulewidth]\toprule[\heavyrulewidth]
+  & \multicolumn{5}{c}{\textbf{Models}}\\
+  \shortstack{Number of \\ labelled samples} & \textbf{MLP} & \textbf{SDAE} & \textbf{M1} & \textbf{M2} & \textbf{Ladder} \\ 
+  \midrule
+  100 & 77.54 \pm 0.85 & 78.69 \pm 0.84 & 68.83 \pm 0.95 & 91.25 \pm 0.58 & 87.56 \pm 0.67\\
+  500 & 91.09 \pm 0.58 & 91.32 \pm 0.57 & 91.08 \pm 0.58 & 93.97 \pm 0.49 & 93.34 \pm 0.51\\
+  1000 & 93.02 \pm 0.52 & 93.53 \pm 0.50 & 92.20 \pm 0.55 & 94.20 \pm 0.48 & 94.40 \pm 0.47\\
+  \text{All} & 96.47 \pm 0.37 & 96.13 \pm 0.39 & 93.67 \pm 0.50 & 94.85 \pm 0.45 & 96.01 \pm 0.40\\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{TCGA 5-fold cross-validation percentage accuracies} 
+\end{table}
 
 \subsection{Semi-supervised comparison}
 
