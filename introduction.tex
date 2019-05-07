@@ -1,0 +1,54 @@
+\chapter{Introduction}
+
+\textit{The stated aim of this project was to develop a semi-supervised autoencoder-based method for classifying 
+cells into phenotypes \footnote{the observable characteristics and traits of an organism} using genetic data. To this end a range 
+of autoencoder based semi-supervised models have been implemented, 
+ranging from fairly simple to state-of-the-art. These models were then evaluated on selected gene expression datasets, including 
+the Cancer Genome Atlas expression data.}
+
+\section{Motivation}
+
+Gene expression is the process of synthesising proteins from the gene via RNA. A transcriptome is the set of all RNA 
+molecules in a cell or population of cells. While every cell with a nucleus in an organism has the same DNA and genes, the cells
+differ in function, and this depends on which genes are being actively expressed. This in turn means the
+transcriptome contains information from both genetic and epigenetic sources~\cite{Gibney2010}. Epigenetic differences are differences
+in the phenotype without alterations to the DNA (e.g. DNA methylation). Therefore, as this project aims to classify cells into phenotypes, 
+gene expression data is used.
+
+Biological labs worldwide perform transcriptome analysis, resulting in huge amounts of gene expression data being
+generated. Much of this is shared or available online, giving researchers access to huge amounts of data. The development
+of RNA-Seq using next generation sequencing has also resulted in increased amounts of gene expression data, being more 
+accurate and cost effective than previous methods. However,
+while many of the datasets generated in different experiments may include transcriptomes for the same species of organism,
+the majority of the time the experiments are measuring different phenotypes of the organism. This means that a 
+researcher wanting to analyse or predict a specific phenotype is unable to use much of the available data, being limited
+to only those labelled with the desired phenotype.
+
+Semi-supervised learning attempts to leverage unlabelled data to improve the accuracy of the machine learning
+algorithm on a supervised task. Autoencoders have a long history of being used in semi-supervised learning problems,
+having been used early on to improve deep networks by pretraining them using stacked denoising autoencoders (Section~\ref{sdae})
+and recently having been used to achieve state of the art semi-supervised performance as part of the ladder 
+network (Section~\ref{ladder}). The main reason for their use is that autoencoders are good at learning 
+important features of data in an unsupervised manner, and these features are often useful in improving 
+supervised performance.
+
+Therefore, with the use of semi-supervised autoencoder models it should be possible to leverage the data without
+the desired phenotype to improve performance in predicting the phenotype.
+
+The reason for choosing autoencoder-based models to use with gene expression data is that they are implemented
+using neural networks. This is advantageous because neural networks work very well on non-linear data and are
+also able to effectively analyse data with very high dimensionality (number of features). Transcriptomes can
+often contain several thousand genes, and so any model used must be able to cope with this level of dimensionality.
+
+\section{Related work}
+
+Stacked denoising autoencoders have previously been used with gene expression data to derive the most informative
+genes for distinguishing between healthy and cancerous cells~\cite{8217828}.
+
+Likewise, variational autoencoders (Section~\ref{vae}) have been successfully used to extract a biologically relevant latent 
+space from cancer transcriptomes ~\cite{Way2018ExtractingAB}. They and the semi-supervised variant (Section~\ref{ssVAE}) 
+have also been used to model the change in the gene expression of tumours in response to certain drugs~\cite{10.1093/bioinformatics/btz158}.
+he semi-supervised model in the paper, Dr.VAE, jointly models both the drug response and the treatment outcomes.
+
+Ladder networks have also been used in biologically relevant ways, achieving state of the art accuracy in the binary cancer classification
+problem using gene expression data~\cite{10.1007/978-3-319-78723-7_23}.

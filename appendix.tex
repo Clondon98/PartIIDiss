@@ -1,0 +1,73 @@
+\appendix
+
+\chapter{Backpropagation} \label{backprop}
+
+Backpropagation is the flow of information from the outputs of the network back through the network. Once the cost function has been computed
+finding the gradient of the loss with respect to each trainable parameter shows which direction the parameter can be shifted to decrease 
+the loss function.. This derivation of the backpropagation algorithm is based on that found in \textit{Artificial intelligence I}~\cite{Art_Int}.
+In the derivations below:
+\begin{itemize}
+  \item $J(\vec{\theta})_k$ is the cost function for the $kth$ sample in the training set
+  \item $w_{i \to j}$ is the weight between node $i$ and node $j$
+  \item $a_j$ is the value computed by the node $j$ pre-activation ($\sum_{k} w_{k \to j} z_k$)
+  \item $z_j$ and $y_j$ are the values post-activation ($\sigma(a_j)$), for non-output and output nodes respectively
+\end{itemize}
+
+The value to be calculated for each weight (per sample) is $\frac{\partial J(\vec{\theta})_k}{\partial w_{i \to j}}$. To do this we use the chain rule
+of differentiation:
+\begin{align}
+  \frac{\partial J(\vec{\theta})_k}{\partial w_{i \to j}} & = \frac{\partial J(\vec{\theta})_k}{\partial a_j} \frac{\partial a_j}{\partial w_{i \to j}} \\
+  & = \frac{\partial J(\vec{\theta})_k}{\partial a_j} z_i
+\end{align}
+
+Then for weights connected to the output nodes:
+\begin{align}
+  \frac{\partial J(\vec{\theta})_k}{\partial w_{i \to j}} & = \frac{\partial J(\vec{\theta})_k}{\partial a_j} z_i \\
+  & = \frac{\partial J(\vec{\theta})_k}{\partial y_j} \frac{\partial y_j}{\partial a_j} z_i
+\end{align}
+
+If our loss function is differentiable with respect to $y_j$, and $y_j$ is differetiable with respect to $a_j$ then we can calculate this.  
+For backpropagation to work all our loss and activation functions must have this property. Thankfully all the loss and activation functions 
+shown in this dissertation do have that property and so work correctly with backpropagation.
+
+Once the gradients are computed for the weights in the output layer it is possible to calculate them for the next layer, and then the
+layer after that, etc., as the errors are backpropagated through the network. The computation for the hidden layers is slightly more 
+complicated:
+\begin{align}
+  \frac{\partial J(\vec{\theta})_k}{\partial w_{i \to j}} & = \frac{\partial J(\vec{\theta})_k}{\partial a_j} z_i \\
+  & = \left( \sum_{k \in K} \frac{\partial J(\vec{\theta})_k}{\partial a_k} \frac{\partial a_k}{\partial a_j} \right) z_i
+\end{align}
+\begin{center}
+  \textit{where K is the set of all nodes $j$ is connected to in the next layer}
+\end{center}
+
+By definition:
+\begin{align}
+  \frac{\partial a_k}{\partial a_j} & = \frac{\partial}{\partial a_j} \left( \sum_{i} w_{i \to k} z_i \right) \\
+  & = \frac{\partial}{\partial a_j} \left( \sum_{i} w_{i \to k} \sigma(a_i) \right) \\
+  & = w_{j \to k} \sigma'(a_j)
+\end{align}
+
+Therefore, for hidden layers:
+\begin{align}
+  \frac{\partial J(\vec{\theta})_k}{\partial w_{i \to j}} & = \left( \sum_{k \in K} w_{j \to k} \frac{\partial J(\vec{\theta})_k}{\partial a_k} \right) \sigma'(a_j) z_i
+\end{align}
+
+As the errors are moving backward through the network, and all nodes $k$ are in the layer after $j$, $\frac{\partial J(\vec{\theta})_k}{\partial a_k}$
+has already been computed and so this gradient can be calculated.
+
+\chapter{The reparameterization trick} \label{reparam}
+
+It is not possible to backpropagate the reconstruction loss of a varitaional autoencoder through the random sampling in the latent dimension, because the drawing of
+the samples is not differentiable with respect to $\vec{\mu}$ and $\vec{\sigma}$. Previously this was solved using a Monte Carlo gradient estimator, but these have 
+extremely high variance and are impractical.Instead the reparameterization trick allows the Gaussian sample to be reparameterized as:
+\begin{align}
+  \vec{z_{i}} = \vec{\mu} + \vec{\sigma}\vec{\epsilon}
+\end{align}
+
+$\vec{\epsilon}$ is a vector of samples from the standard normal distribution $\mathcal{N}(0, 1)$. The sampling operation is now differentiable
+with respect to $\vec{\mu}$ and $\vec{\sigma}$ and therefore is differentiable with respect to $\vec{\theta}$, the trainable parameters of the encoder. As the
+gradients can be backpropagated through the network it is possible to train the VAE using gradient descent.
+
+\chapter{Project Proposal} \label{proposal}
+\input{proposal}

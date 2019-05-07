@@ -1,0 +1,450 @@
+\chapter{Implementation}
+
+\textit{This section of the dissertation is focused on the steps involved in constructing, training and evaluating the models used in this project.
+All the models were written from scratch in PyTorch, using the original papers and their implementations (in Theano) as starting points.
+This section also covers the tuning of the model hyperparameters, and the subsequent evaluation of the models.}
+
+\section{Model and class structure}
+
+\subsection{PyTorch data structures}
+The most important computational unit in PyTorch is the \textbf{tensor}. Tensors are similar to multidimensional arrays, but they are able to 
+utilise GPUs to perform operations in parallel. This is important because the running of a neural network involves thousands of matrix 
+operations, many of which can be performed in parallel, as they don't depend on each other. GPUs have high memory bandwidth and are 
+optimised to perform simple operations in parallel, making them well suited for machine learning applications.
+
+Tensors have the property \texttt{requires\_grad} which tells PyTorch whether to record the operations that happen to the tensor. If 
+this is true the tensor records all operations on it, and build up a \textbf{computation graph}. The computation graph is a 
+directed acyclic graph containing input tensors as the roots and output
+tensors as leaves and has \texttt{Functions} as internal nodes. These functions are actually the expressions that are applied to the 
+tensors during the forward pass. The construction of this graph allows for backpropagation to be computed easily by performing a 
+backwards pass on this graph to compute the gradients. The graph is created during the forward pass, which is why they are referred to 
+as \textbf{dynamic} computation graphs.
+
+Parameters are tensors that are trainable parameters of the network, for example the weights and biases. The parameter class is a 
+wrapper that tells a \textbf{module} whether to include a tensor in the parameters object of the module.
+
+Modules are the base class for all models in PyTorch, and are combinations of parameters and functions that will be applied to input 
+data when the \texttt{forward} method of the module is called. All models subclass \texttt{nn.Module} and these modules can be nested
+to allow more complicated models to be constructed from basic constituent parts. For example the \texttt{nn.Linear} module contains 
+weight and bias parameters, and multiplies the input data by the weights and adds the bias in the forward method.
+
+\subsection{My base modules}
+My codebase contains four base modules that are used to construct the more complicated higher level models. The simplest of 
+these base classes are Classifier, Encoder and Decoder, and the difference between them is mainly semantic and used to keep the
+code clearer.
+
+The Classifier constructor takes as input the dimensionality of the input data, a list of hidden layer sizes, and the number of classes 
+in the output, and constructs a simple multilayer perceptron module using \texttt{nn.Linear} for each layer. It uses ReLU as the activation 
+function in all the hidden layers,
+because it is non-saturating, meaning that it does not suffer from the vanishing gradients problem, where the gradients of the early layers
+of the neural network become very small and so update very slowly. It uses a linear function on the output because the implementation of 
+cross entropy loss in PyTorch computes log softmax inside it, and so computing softmax in the classifier is not necessary.
+
+The Encoder is very similar to the classifier, except the constructor also takes in an activation function that is applied to the output 
+of the network. This becomes important when the encoder is used in the SDAE. The Decoder constructor is the same as the Encoder to make 
+constructing Encoder/Decoder pairs as simple as possible. It takes in the same inputs but reverses them to create the complementary decoder,
+also including an output function if required.
+
+The Variational Encoder is a separate module from the Encoder, because the forward pass has three outputs. 
+The output of the network is two vectors of the same dimension, $\mu$ and $\sigma$, the parameters of the posterior Gaussian distributions.
+It also contains a module that samples from these distributions to create the hidden vector $z$ using the reparameterization trick 
+(Appendix~\ref{reparam}). The output of calling \texttt{forward} on the Variational Encoder is then $z$, $\mu$ and $\sigma$.
+
+\subsubsection{Weight initialisation}
+Random initialisation is required in neural networks to give them the best chance to find minima of the loss, as the starting 
+point can greatly effect the gradients in the network and the direction the parameters move in. If the weights were 
+deterministically initialised the network would always find the same minima, which may not be optimal.
+Weight initialisation can help models converge more easily as reported by Glorot and Bengio~\cite{DBLP:journals/jmlr/GlorotB10}.
+The default weight initialisation in PyTorch is Xavier initialisation which involves drawing the weights and biases from a normal 
+distribution with the parameters below:
+\begin{align*}
+  \mu = 0 \qquad \sigma = \frac{1}{\sqrt{n_{l-1}}}
+\end{align*}
+where $n_{l-1}$ is the number of neurons in the previous layer
+
+\subsection{Class structure}
+
+The models used in this project all required certain methods to allow the scripts used for running the training and evaluation to be as 
+model agnostic as possible. To this end I implemented a base class \texttt{Model} for all the models to ensure they all had the same methods.
+\texttt{Model} also subclassed \texttt{nn.Module} to ensure that the models adhered to PyTorch standards.
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{figs/model_class.pdf}
+  \caption{Model base class}
+\end{figure}
+
+The \texttt{dataset\_name} field is used to save the model state in the correct place when using early stopping, and the \texttt{device} field is 
+used to ensure that the GPU is used if available, and all new tensors created are placed on the GPU. Not placing the tensors on the correct device 
+leads to errors as PyTorch cannot perform operations on tensors located on different devices.
+
+Each model has different fields depending on the structure of the model, so initialisation of the models could not be a general method. 
+However, for evaluation I implemented a \texttt{hyperparameter\_loop} method per model 
+which took the same arguments for all models:
+\begin{center}
+  \texttt{hyperparameter\_loop(fold, validation\_fold, state\_path, results\_path, dataset\_name, dataloaders, input\_size, num\_classes, max\_epochs, device)}
+\end{center}
+
+This method loops through a pre-selected set of hyperparameters to determine the best performing.
+This was possible because the hyperparameters chosen for searching over were not dependent on the input dataset, and were instead selected 
+to give good general performance e.g. the ladder network hyperparameter search constructs a ladder network with 1-4 hidden layers, with the 
+deeper model winning on more complicated datasets and the shallower on less complicated.
+
+\subsection{Multilayer perceptron}
+The multilayer perceptron is a fully supervised model implemented to compare the performance between a fully supervised approach and the 
+semi-supervised approaches used in the project. The model simply uses the Classifier base module and trains it on only the labelled data 
+using the Adam optimizer for gradient descent.
+
+\subsection{M1}
+The M1 model is partially taken from the Kingma paper~\cite{DBLP:journals/corr/KingmaRMW14}. It is made up of a VAE Encoder,
+Decoder and Classifier 
+module. The VAE Encoder and Decoder are initially trained in an unsupervised way using both the labelled and unlabelled data. In order 
+to train them I made the decision to normalise all the data to the range [0-1] and to use a Sigmoid function 
+\footnote{the sigmoid function is of
+the form $f(x) = \frac{1}{1+e^{-x}}$ and has the domain of the real numbers and range [0-1]} on the output of the Decoder, to ensure the output range 
+was the same as the input. This was done for numerical stability reasons, as it was found that using unnormalised or standardised data 
+as input to the VAE would cause the variance of the latent distribution to become infinitely small and eventually lead to the loss and 
+output of the VAE becoming \texttt{nan}.
+
+Once the VAE Encoder and Decoder are trained the Decoder is discarded. The labelled data is passed through the VAE Encoder, and the samples
+from the distributions are used as input to the Classifier. The Classifier is then trained using this labelled data, using cross entropy 
+loss as the loss function. 
+
+This model relies on the manifold hypothesis. The training of the VAE hopefully clusters similar samples together by finding a lower
+dimensional manifold, allowing the Classifier to more easily separate the classes using only a small amount of labelled data.
+
+Once the Classifier is trained the full pipeline for classifying new data involves first passing the data 
+through the VAE Encoder and then through the Classifier.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node at (0, 0) [black,] (x) {$x$};
+    \node at (2, 0) [rectangle,draw,align=left,fill=blue!10] (vae_e) {Variational \\ Encoder};
+    \node at (6, 0) [rectangle,draw,fill=red!10] (clas) {Classifier};
+    \node at (8, 0) [black, ] (y) {$y$};
+    \draw [->] (x) to (vae_e);
+    \draw [->] (vae_e) to node[above] {z} (clas);
+    \draw [->] (clas) to (y);
+  \end{tikzpicture}
+  \caption{The classification pipeline of the trained M1 model}
+\end{figure}
+
+\subsection{Stacked denoising autoencoder}
+The SDAE was constructed by first constructing a list of Encoders. Each Encoder had the same input size as the latent dimension of the 
+previous Encoder. All the Encoders use ReLU as the output activation function, and the final output layer is a simple \texttt{nn.Linear} layer with 
+no output activation. This means the structure of the network is very similar to the Classifier, but it enables easy unsupervised pretraining.
+
+The unsupervised pretraining is performed by taking each encoder, starting with the first hidden layer, and adding the corresponding 
+Decoder. This is where the pairing of the Encoder and Decoder is very useful, as by extracting the layer sizes of the Encoder they 
+can be passed straight into the Decoder contructor to create the complementary Decoder. Then Gaussian noise is added to the input data,
+using the PyTorch function \texttt{torch.randn\_like(data)}, which creates a Gaussian noise tensor of the same size as the data that can
+simply be added to the data. This Encoder/Decoder pair is then trained like a normal autoencoder using mean square error loss, and 
+this is the local denoising criterion.
+
+Once each hidden layer has been trained like this, the whole network is trained using labelled data to ensure that the hidden layers 
+are detecting the right features for the task. Classification just involves passing the data through all the Encoders and then through 
+the output layer.
+
+\subsection{M2}
+
+The M2 model is made up of a Classifier, a Variational Encoder and a Decoder. It is again taken from the Kingma paper~\cite{DBLP:journals/corr/KingmaRMW14}.
+Data is first passed through the Classifier to get a prediction for the label. The loss functions used were given in Section~\ref{ssVAE}, 
+and depend on whether the data is labelled or unlabelled. If the data is labelled then the data is passed into the Variational Encoder 
+with the correct label, and the output of the Variational Encoder is passed into the Decoder which attempts to reconstruct the data.
+If the data is unlabelled then the data and each possible label are passed into the Variational Encoder, and the reconstruction loss 
+is computed for all the combinations. This seems like it would greatly increase the training time, but this can actually be done 
+by creating a larger tensor with every unlabelled sample in the batch paired with each label. This operations on this larger tensor 
+can be computed in parallel on the GPU so the performance hit is not as drastic as this operation might suggest. The overall 
+structure of the model is shown below:
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node at (2, 0.25) [rectangle,draw,fill=red!10] (clas) {Classifier};
+    \node at (5.5, 0) [rectangle,draw,align=left,fill=blue!10] (vae_e) {Variational \\ Encoder};
+    \node at (9, 0.25) [rectangle,draw,fill=green!10] (dec) {Decoder};
+    \node at (12, 0.25) [black,] (x_hat) {$\hat{x}$};
+    \draw [->] (0, 0.25) to (clas);
+    \draw [->] (clas) to node[above] {$y$} (4.4, 0.25);
+    \draw [->] (0, -0.25) to (4.4, -0.25);
+    \draw [->] (6.6, 0.25) to node[above] {$z$} (dec);
+    \draw [->] (3, 0.25) to[out=45,in=135] (dec);
+    \draw [->] (dec) to (x_hat);
+    \draw [decorate,decoration={brace,amplitude=5pt,mirror,raise=-1ex}]
+      (-0.5,0.5) -- (-0.5,-0.5) node[left,midway]{$x$};
+  \end{tikzpicture}
+  \caption{Model structure of M2}
+\end{figure}
+
+The main diffculties in implementing this model came from conflicting information found online, and the lack of other implementations to view. 
+The original paper can be quite hard to decipher, often skipping over difficult derivations, and at one time seemingly contradicting 
+itself in the space of two lines. One of the original blog posts I viewed~\cite{Semisupe95:online} did not pass the label into the 
+encoder, and after corresponding with the author I found it was due to a different interpretation of a line in the paper. However,
+Kingma's implementation (available at: https://github.com/dpkingma/nips14-ssl) does do this and so that is the model I followed. A 
+helpful reference implementation I found is available at https://github.com/wohlert/semi-supervised-pytorch, but I believe my implementation is 
+easier to read and also performs better, as I use the inbuilt PyTorch models for computing the cross entropy loss and use the Kingma way 
+of computing the KLD~\cite{DBLP:journals/corr/KingmaW13}. I was able to contribute to the Wohlert repository too, finding a bug in the 
+variational autoencoder code where the natural logarithm of the variance was restricted to values greater than zero (this is incorrect).
+
+This model again requires that the data be normalised to the range [0-1] (as in M1) as otherwise the loss explodes and becomes 
+\texttt{nan} as the variance of the latent distribution becomes very small.
+
+Once the model is trained the only part used in classification is the Classifier.
+
+\subsection{Ladder}
+
+The ladder network doesn't make use of any of the base modules, as it requires a lot of extra parts. My original implementation 
+was based on an implementation found at https://github.com/abhiskk/ladder. However, this implementation is very slow, as at one point 
+tensors on the GPU are shifted onto the CPU to perform operations using numpy, which I found was unnecessary. The implementation also did 
+not achieve the desired accuracy on MNIST. For this reason I based my implementation on a Tensorflow implementation written by Rinu Boney
+(available at https://github.com/rinuboney/ladder), who worked on 
+the 2015 paper~\cite{DBLP:journals/corr/RasmusVHBR15}. The code required many modifications to move from Tensorflow to PyTorch,
+but my implementation is now the fastest and most accurate PyTorch implementation of the model I could find on the internet.
+
+The training process is described in some detail in Section~\ref{ladder}, and I will only add some difficulties with the implementation 
+here. The ladder network uses batch normalisation at every layer in the encoder and decoder, and the encoder mean and standard deviation
+are also used to normalise the reconstruction. However, the forward pass batch normalisation is done by PyTorch \texttt{nn.BatchNorm1d}
+modules, which handles edge cases correctly. When normalising the reconstruction I used the statistics from the batch norm, but did 
+not realise that the variance in the top layer was zero in lots of places. This was caused by the edge pixels in the MNIST images all 
+being entirely black, and so I discovered that the ouput of the network became \texttt{nan}. In order to debug this I added hooks to the
+data tensors to report if they ever became \texttt{nan}.
+
+\section{Hyperparameter optimisation} \label{hyper}
+While the weights and biases in a network can be trained by backpropagation, there are parameters of the model that cannot be trained in 
+this way, but still affect the performance of the network. These are hyperparameters and they are set before the training begins. 
+Optimising these can be crucial in getting the best performance from a model.
+
+\subsection{Grid search}
+The most common method for hyperparameter optimisation, and the one used in this project, is grid search. The researcher provides several 
+likely values for the hyperparameters, and the model is trained with each combination of these. A validation set is used to compare the
+performance of the models, and the best set of hyperparameters is selected this way.
+
+However, optimising hyperparameters this way results in every combination having to be run again for each additional value of each
+hyperparameter used. Depending on how long it takes each model to train, this can result in hours more training time. 
+Therefore, I chose to optimise over a small number of hyperparameters that I feel are most likely to affect the performance of the models.
+
+\subsection{Number of hidden layers}
+The number of layers in a model is important because it controls the capacity~\cite{Goodfellow-et-al-2016} of the neural network. If the 
+capacity of the network is too high it can \textbf{overfit} to the training data, resulting in poor generalization to new examples, and if the capacity is 
+too low it can \textbf{underfit}, resulting in poor fitting to the train data. Therefore choosing the number of layers is an important hyperparameter.
+The universal approximation theorem states that a neural network with a single hidden layer can approximate any function, but the layer 
+has to be exponentially large to give the same capacity as a multi-layer network; instead adding new layers is the preferred method, 
+with the deeper layers learning more complex and relevant features to the task.
+
+\subsection{Hidden layer size}
+Larochelle et al.~\cite{DBLP:journals/jmlr/LarochelleBLL09} found that neural networks with constant layer size usually perform better than
+those where the layer size increases or decreases throughout the network. When optimising the number of layers I use a constant layer size
+for each hidden layer.
+
+Bengio et al.~\cite{DBLP:series/lncs/Bengio12} found that using a first hidden layer larger than the input layer often resulted in 
+better performance. However due to the high dimensionality of gene expression data (over 20,000 genes in the TCGA data) I decided against 
+this. I use a constant layer size for all the hidden layers, using the same layer size for all the different models to allow for a fairer
+comparison.
+
+\subsection{Latent dimension of autoencoders}
+The size of the latent dimension for an autoencoder affects the quality of the representation learned. If the dimension is too small the 
+autoencoder may not be able to encode all the important features, whereas a latent dimension that is too large can give the autoencoder 
+too much freedom, causing it to not cluster important samples together.
+
+This hyperparameter is only optimisable for the M1 and M2 models, as the hidden dimensions for the autoencoder is the layer size in the SDAE,
+and the number of classes in the ladder network.
+
+\subsection{Learning rate}
+The learning rate is a hyperparameter that controls how large of a step is taken each time the weights are updated. It is an often
+optimised hyperparameter because if it is too large it can overshoot loss minima, resulting in worse performance, and if it is too 
+small it can take a very long time for the gradient descent to converge. However, I have chosen not to search over different learning 
+rates because of the additional time it would take, and the fact that I am using the Adam optimizer. The Adam optimizer keeps a 
+learning rate per parameter, and updates these learning rates according to the first and second moments of the gradients with respect to each 
+parameter~\cite{DBLP:journals/corr/KingmaB14}. This means that while an initial learning rate still has to be provided, it affects the 
+performance much less.
+
+\subsection{Early stopping}
+The number of epochs that a learning algorithm is trained for also affect how well it performs. Not training for long enough can result in
+poor peformance and underfitting, as the model has not had enough time to learn the relevant features, while training for too long can
+be wasted compute time if the model is not improving, or even lead to overfitting.
+
+Luckily, this is one of the easiest hyperparameters to optimise, and does not have to be included in a grid search. 
+With the use of a validation set that the network is not trained on the performance of each model on unseen data can be measured after 
+every epoch. Unseen data is necessary because evaluating a model on training data will give overfitted models excellent performance, 
+while the actual model generalises poorly and is unusable.
+If the performance has improved the state of the model is saved. After a certain number of epochs without the performance improving 
+the training is stopped, and the best performing model state is loaded.
+
+\section{Data processing}
+An important part of a machine learning project is the pre-processing of the data. This is used to ensure good model performance and 
+to partition the data to allow unbiased evaluation.
+
+\subsection{Datasets}
+\subsubsection{MNIST handwritten digit database}
+The MNIST dataset is one of the most popular in machine learning, being used to benchmark new models is many papers.
+\begin{table}[H]
+  \label{tab:mnist}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{lccr} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 60,000 train \& 10,000 test \\
+  Inputs & 28x28 b/w images  \\
+  Number of classes & 10 - digits 0-9 \\
+  Balanced & Yes \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+
+In this project it is again used for benchmarking, and for ensuring that the models are performing similarly to their original implementations.
+It does have several similarities with gene expression data though, being highly dimensional, but with only a few features being relevant to 
+classification. In general, only a very few pixels are actually needed to distinguish between the different digits (and most pixels near the 
+edge of the image are completely useless, being black in almost all the images), while in gene expression it is usually only a few genes 
+that control each phenotype.
+
+\subsubsection{The Cancer Genome Atlas}
+The Cancer Genome Atlas is a project cataloguing sequencing data for several different types of cancer. The data generated by the TCGA Research 
+Network (https://www.cancer.gov/tcga) is available online at https://portal.gdc.cancer.gov. In this project I used data generated using 
+RNA-Seq to attempt to classify the different types of cancer using only their gene expression.
+\begin{table}[H]
+  \label{tab:tcga}
+  \small % text size of table content
+  \centering % center the table
+  \begin{tabular}{cc} % alignment of each column data
+  \toprule[\heavyrulewidth]
+  Samples & 11,060 \\
+  Inputs & 20,350 genes with values given as $\log_{2}(\text{TPM}+1)$ \footnotemark \\
+  Number of classes & 33 - different cancer types\\
+  Balanced & No \\
+  \bottomrule[\heavyrulewidth] 
+  \end{tabular}
+  \caption{MNIST dataset} 
+\end{table}
+\footnotetext{TPM is transcripts per million, where the total number of reads mapped to a gene is normalised by the length of the gene} 
+
+Some of the samples in this dataset are missing gene expression values, and these samples are not used for comparing semi-supervised model
+performance. However imputation of missing data is an important topic in bioinformatics and so I cover this in Section~\ref{imput}.
+
+\subsection{Data normalisation}
+Data normalisation can help neural networks by allowing gradient descent to reach a minima more easily. Features having large ranges
+can result in larger gradients of the loss, resulting in larger steps being taken at the weights. This can cause the 
+gradient descent to oscillate around minima and take far longer to reach a good value. The two most common forms of data normalisation 
+are standardisation and normalisation to the range [0-1]. Having all the features with similar scales is also important for saliency computation,
+as different scales result in different gradients of the output with respect to the input, preventing them from being directly comparable.
+
+\begin{itemize}
+  \item \textbf{Standardisation} involves scaling all the features so that they have mean 0 and variance 1. This is done be computing the mean 
+          and standard deviation of the features from the training set, and then subtracting the mean from each feature and dividing by the
+          standard deviation.
+  \item \textbf{Normalisation} into the range [0-1] is done by finding the maximum and the minimum for every feature from the training set,
+          subtracting the minimum from every feature and dividing by the maximum minus the minimum.
+\end{itemize}
+
+For the MNIST dataset I used normalisation, as the pixels take values between 0 and 255 and so scaling this to be between 0 and 1 is 
+a simple and intuitive transform. It is also the transform used in the code for the ladder network paper~\cite{DBLP:journals/corr/RasmusVHBR15}, 
+and similar to the transform used in the semi-supervised VAE paper~\cite{DBLP:journals/corr/KingmaRMW14} (here they set pixel values to 
+either zero or one, without the range inbetween).
+
+For the gene expression datasets I tried both standardisation and normalisation. Standardisation worked well for the non-VAE based models,
+but the M1 and M2 models experienced significant numeric instability, resulting in the variances of the normal distribution in the latent dimension 
+becoming very small, which resulted in the KLD loss exploding.
+This eventually lead to the output of the autoencoder becoming \texttt{nan}. From what I could discern this is a somewhat common problem in
+VAEs, especially when the dimensionality of the data is higher than the number of samples in the dataset. The VAEs responded well to normalised
+data, while the other models experienced similar or worse performance. Therefore standardisation was used for the MLP, SDAE and ladder 
+network and normalisation was used for M1 and M2.
+
+\subsection{Data imputation} \label{imput}
+The TCGA dataset contains the gene expression levels for 20,350 genes, but in many of the samples some of these genes are missing.
+This can be dealt with by simply discarding the samples with missing genes, but this can be a significant number of samples, and removing 
+a large chunk of the dataset is not a good way to improve a model. Instead it may be possible to impute the missing genes, or drop the 
+genes entirely, reducing the number of features but keeping the number of samples. In the evaluation section there is a brief comparison 
+of the performance of dropping the genes, replacing the missing values with the feature mean, and replacing the missing values with zero.
+
+However, to remove any effect of the imputation on the semi-supervised comparisons I removed the samples containing missing genes, leaving 
+9310 samples. 
+
+\subsection{Data partitioning} \label{part}
+\subsubsection{Evaluating models and hyperparameter optimisation}
+Evaluating the performance of a machine learning algorithm should be done on a test dataset that is separate from the dataset the 
+algorithm is trained on, to prevent overfitting leading to overestimating the performance of the model. If the dataset is not particularly 
+large this can be done using 
+\textbf{$k$-fold cross validation}, where the data is split into $k$ different partitions. $k-1$ of these partitions are used for training, 
+while the $kth$ is used to test the performance after training. The accuracy for the model is then computed by taking the average of all
+the accuracies for each fold.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{figs/k_fold.pdf}
+  \caption{One split of 5-fold cross validation}
+\end{figure}
+
+The $k$-fold cross-validation used in this project is \textbf{stratified}. This keeps the proportion of each class in each fold
+close to the proportion of each class in the overall dataset. This is especially important when classes are unbalanced, as performing 
+non-stratified cross-validation could result in biasing the model towards an uncommon class, or not including any samples of a class in the 
+fold. It has also been shown by Kohavi~\cite{Kohavi:1995:SCB:1643031.1643047} stratified cross-validation generally has lower bias and variance when estimating model 
+accuracies than non-stratified.
+
+In order to perform hyperparameter optimisation (Section~\ref{hyper}) there needs to be a validation dataset, to 
+compare the performance of each set of hyperparameters. Performing hyperparameter optimisation on the test set will lead to overestimating 
+the ability of the model to perform on unseen data, as the hyperparameters have been chosen to perform best on the test set. Therefore,
+another split has to be made to generate a validation set. The most common way to do this is \textbf{nested k-fold cross validation}:
+partition the training data into another $k$ folds; compute the validation performance for each set of hyperparameters $k$ times; take the 
+hyperparameters that perform best on average and train a model with those hyperparameters on all the training data.
+However this method has a couple of problems. Firstly if there are $n$ hyperparameter sets to test over this method will take $nk^{2}$ 
+iterations, and even if a model is quick to train the time this takes quickly becomes very large. It also means that there is no validation set used 
+for the final computation of the model. As I am using early stopping a validation set is always required because the number of epochs 
+to train to get best performance can be quite variable and depend on the model weight initialisation.
+
+Therefore I instead partitioned the $kth$ fold in two, into a validation set and a test set. The hyperparameters are optimised using the 
+validation set, and the performance of each model is compared. The best performing model is then run on the test set and the acccuracy
+recorded. The test and validation sets are then swapped and optimisation is performed again. This reduces the number of iterations to
+$2nk$ and also ensures that there is always a validation set to perform early stopping, while still using all the available data as train, 
+validation, or test data at some point.
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{figs/test_val_split.pdf}
+  \caption{Splitting test set into a test and val set for hyperparameter optimisation}
+\end{figure}
+
+\subsubsection{Labelled splits}
+While the datasets used in this project include labels for all the samples, the focus of this project is on semi-supervised learning.
+In order to give an overall view of the performance for each dataset I performed evaluation of the models with different amounts of
+labelled data. For each number of labelled samples ($n$) used, I selected $n$ samples from the train set in a stratified way to use as the 
+labelled dataset. The unlabelled dataset was then all the remaining samples in the train set, and these were assigned the dummy label $-1$ to 
+ensure that they could not accidentally be used in supervised training.
+
+\subsubsection{Parallelisation}
+While the cross-validation changes made above reduce the number of iterations to a more manageable size, even a model with a fairly short 
+training time will take a long time to complete the evalutaion. To this end I computed the indices of test/val/train and labelled 
+splits I would use in advance, and serialised these using \texttt{pickle}. This allows all the models to use the exact same folds, allowing
+for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold. The Cambridge High Performance
+Cluster has 90 GPUs, and so running many smaller jobs in parallel results in a much quicker finish time than running several larger jobs.
+To this end I also wrote several \texttt{bash} scripts to schedule slurm jobs for each model, number of labelled examples and fold. 
+
+\section{Saliency}
+Neural networks often act as a black box, with no indication to the programmer or user of what the network is doing, and what it deems 
+to be important. One way of extracting that is through the use of saliency maps (first introduced in~\cite{DBLP:journals/corr/SimonyanVZ13}), 
+which intend to give the user some idea of which inputs 
+are the most important in determining the output class. The way this is done is by computing the partial derivatives of the input data 
+with respect to the output class of the network. If the input values have been scaled to have similar ranges then this partial derivative
+should be larger for for inputs that are more important to determining the class. A large positive partial derivative means that increasing 
+the value of that input makes the class more likely, and a large negative partial derivative means increasing that input decreases the 
+likelihood of that class.
+
+A variant of this uses guided backpropagation~\cite{DBLP:journals/corr/SpringenbergDBR14}, a variant of backpropagation where the 
+gradient is only backpropagated through a ReLU if the error gradient is greater than zero. When used to construct saliency maps for 
+images it has been shown to make much clearer images, and highlight better the features the network thinks are important.
+
+I implemented both of these methods, basing my implementation on this very simple implementation: https://github.com/Ema93sh/pytorch-saliency.
+The guided backpropagation version works by registering a hook on each ReLU module that sets the gradient being backpropagated through it 
+to zero if it is less than zero.
+
+\section{Command line tool}
+One of the success criteria of this project was to build a tool, and so the \texttt{main.py} file in the repository provides a command line tool 
+for building a semi-supervised learning model. The tool uses many of the techniques described earlier in this section, but many of the 
+decisions made are based on results in the evaluation section, so an overall description of the tool is available in Section~\ref{tool}.
+
+\section{Repository overview}
+
+The top level of the repository contains the file \texttt{main.py}, and the folders \texttt{scripts}, \texttt{utils}, \texttt{Saliency},
+\texttt{Models} and \texttt{data}. The \texttt{scripts} folder contains python and bash scripts that can be used to run the models with the correct 
+arguments to replicate the results seen in the Evaluation section. \texttt{utils} contains code for loading data, along with making the 
+folds to be used in evaluation.  \texttt{Models} contains all the code for the models implemented in this project, while \texttt{data} 
+is the data files and generated data splits. \texttt{Saliency} is all the code for the saliency computations, and contains the license 
+from the repository it was based on.
