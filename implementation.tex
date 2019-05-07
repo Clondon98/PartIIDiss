@@ -433,7 +433,27 @@ images it has been shown to make much clearer images, and highlight better the f
 
 I implemented both of these methods, basing my implementation on this very simple implementation: https://github.com/Ema93sh/pytorch-saliency.
 The guided backpropagation version works by registering a hook on each ReLU module that sets the gradient being backpropagated through it 
-to zero if it is less than zero.
+to zero if it is less than zero. The code below implements this: by using the saved forward ReLU outputs as a mask, and setting any 
+negative gradient input values to zero it ensures that the backpropagated gradient leaving the rectifier is only non-zero if both the forward 
+pass output and the backwards pass input gradient are greater than zero.
+
+{\renewcommand{\baselinestretch}{0.8}\small
+    \begin{verbatim}
+    def relu_backward_hook_function(self, module, grad_in, grad_out):
+        """
+        If there is a negative gradient, change it to zero
+        """
+        # Get last forward output
+        corresponding_forward_output = self.forward_relu_outputs[-1]
+        positive_mask = (corresponding_forward_output > 0).type_as(
+            corresponding_forward_output)
+
+        modified_grad_out = positive_mask * torch.clamp(grad_in[0], min=0.0)
+
+        del self.forward_relu_outputs[-1]  # Remove last forward output
+        return (modified_grad_out,)
+    \end{verbatim}
+}
 
 \section{Command line tool}
 One of the success criteria of this project was to build a tool, and so the \texttt{main.py} file in the repository provides a command line tool 
@@ -442,9 +462,33 @@ decisions made are based on results in the evaluation section, so an overall des
 
 \section{Repository overview}
 
-The top level of the repository contains the file \texttt{main.py}, and the folders \texttt{scripts}, \texttt{utils}, \texttt{Saliency},
-\texttt{Models} and \texttt{data}. The \texttt{scripts} folder contains python and bash scripts that can be used to run the models with the correct 
-arguments to replicate the results seen in the Evaluation section. \texttt{utils} contains code for loading data, along with making the 
-folds to be used in evaluation.  \texttt{Models} contains all the code for the models implemented in this project, while \texttt{data} 
-is the data files and generated data splits. \texttt{Saliency} is all the code for the saliency computations, and contains the license 
-from the repository it was based on.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{7cm}
+        \dirtree{%
+        .1 +Semi-Supervised\_Models.
+        .2 main.py.
+        .2 requirements.txt.
+        .2 +Models.
+        .3 Model.py.
+        .3 Simple.py.
+        .3 M1.py.
+        .3 SDAE.py.
+        .3 M2.py.
+        .3 Ladder.py.
+        .3 +BuildingBlocks.
+        .2 Saliency.
+        .2 scripts.
+        .2 utils.
+        }
+    \end{minipage}
+    \caption{Directory structure of the repository}
+\end{figure}
+
+The top level of the repository contains the files \texttt{main.py} and \texttt{requirements.txt}. These is the script for running the tool,
+and the packages I am using in the virtual environment respectively. \texttt{Models} contains all the code for the models used in this project,
+including the base modules in \texttt{BuildingBlocks} and the abstract class \texttt{Model.py}.
+\texttt{scripts} contains all the python and bash scripts used in 
+obtaining the results for the evaluation section, but this folder was created for tidiness and the scripts have to be moved up one level into 
+\texttt{Semi-Supervised\_Models} to be run. \texttt{utils} contains functions for loading data, along with the code for early stopping and 
+making the MNIST and TCGA folds. \texttt{Saliency} contains all the code for generating saliency maps for MNIST.

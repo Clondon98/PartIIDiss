@@ -1,0 +1,39 @@
+\chapter{Conclusion}
+
+\textit{This dissertation has discussed the researching, implementation and evaluation of several semi-supervised models for use with genomic
+data. It has also discussed techniques for processing data and improving model performance, and has used the lessons learned from 
+this to construct a simple command line tool.}
+
+\section{Success Criteria}
+
+All the major success criteria of the project have been achieved. 
+
+The implementations of the models performed as well as their original paper implementations on the MNIST dataset, showing that they were 
+implemented correctly. All the models are now available online at https://github.com/Clondon98/Semi-Supervised\_Models, and include the 
+best performing PyTorch implementation of the semi-supervised VAE and ladder that I was able to find online. This repository also allows 
+the models to be easily used on different datasets, while other implementations are restricted to MNIST. 
+
+The M2 and ladder model also succeeded in achieving statistically significant performance improvements over the fully supervised model on 
+gene expression data, and an average of both of the models achieved even higher performance. This then led to the development of a 
+command line tool that can be trained and used for classification very simply, without any knowledge of machine learning techniques being 
+required.
+
+I also managed to implement an extension that calculated the saliency of inputs to the network, and while time ran out to include it in the 
+tool its results on MNIST showed that it was locating important features for the classification of the characters.
+
+\section{Further Work}
+
+Some areas of the project that could be explored further include:
+\begin{itemize}
+    \item Using VAEs to generate additional unlabelled datapoints and adding these to the dataset to see if they improve performance.
+    \item Using a semi-supervised VAE to generate additional labelled datapoints and seeing if these help improve supervised learning 
+          performance.
+    \item Discovering the most important genes for phenotypes using saliency and comparing those to highly important genes found through
+          other methods.  
+\end{itemize}
+
+\section{Final remarks}
+
+I hope that the models used in this project can be refined further to find real use in the fields of medicine and biology. The models and tool
+developed in this project are all freely available online and will hopefully be of use to future researchers interested in semi-supervised
+learning.
