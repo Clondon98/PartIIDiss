@@ -89,6 +89,10 @@ This was possible because the hyperparameters chosen for searching over were not
 to give good general performance e.g. the ladder network hyperparameter search constructs a ladder network with 1-4 hidden layers, with the 
 deeper model winning on more complicated datasets and the shallower on less complicated.
 
+\subsection{Model training}
+
+All the models were trained using mini-batch gradient descent, as described in Section~\ref
+
 \subsection{Multilayer perceptron}
 The multilayer perceptron is a fully supervised model implemented to compare the performance between a fully supervised approach and the 
 semi-supervised approaches used in the project. The model simply uses the Classifier base module and trains it on only the labelled data 
@@ -191,23 +195,80 @@ This model again requires that the data be normalised to the range [0-1] (as in 
 
 Once the model is trained the only part used in classification is the Classifier.
 
-\subsection{Ladder}
+\subsection{Ladder} \label{ladder_imp}
 
 The ladder network doesn't make use of any of the base modules, as it requires a lot of extra parts. My original implementation 
 was based on an implementation found at https://github.com/abhiskk/ladder. However, this implementation is very slow, as at one point 
 tensors on the GPU are shifted onto the CPU to perform operations using numpy, which I found was unnecessary. The implementation also did 
 not achieve the desired accuracy on MNIST. For this reason I based my implementation on a Tensorflow implementation written by Rinu Boney
-(available at https://github.com/rinuboney/ladder), who worked on 
+(available at https://github.com/rinuboney/ladder), who works at Curious AI, the same company as Rasmus, the author of
 the 2015 paper~\cite{DBLP:journals/corr/RasmusVHBR15}. The code required many modifications to move from Tensorflow to PyTorch,
 but my implementation is now the fastest and most accurate PyTorch implementation of the model I could find on the internet.
 
-The training process is described in some detail in Section~\ref{ladder}, and I will only add some difficulties with the implementation 
-here. The ladder network uses batch normalisation at every layer in the encoder and decoder, and the encoder mean and standard deviation
-are also used to normalise the reconstruction. However, the forward pass batch normalisation is done by PyTorch \texttt{nn.BatchNorm1d}
-modules, which handles edge cases correctly. When normalising the reconstruction I used the statistics from the batch norm, but did 
-not realise that the variance in the top layer was zero in lots of places. This was caused by the edge pixels in the MNIST images all 
-being entirely black, and so I discovered that the ouput of the network became \texttt{nan}. In order to debug this I added hooks to the
-data tensors to report if they ever became \texttt{nan}.
+While the model is described in some detail in Section~\ref{ladder} the training process is as below: 
+\begin{enumerate}
+    \item Data is passed into the clean encoder and the output from each layer is saved.
+    \item Data is passed through the noisy encoder, and output from each layer is saved.
+    \item The final output from the noisy encoder is the classification output, and supervised loss is computed with it.
+    \item The output from the noisy encoder is fed into the decoder. At each layer $l$ of the decoder $g(\tilde{z}^{(l)}, u^{(l+1)})$ is calculated,
+          and the unsupervised loss for the layer is computed.
+    \item The unsupervised losses are multiplied by hyperparameter $\lambda_{l}$ and summed together.
+    \item The supervised and unsupervised losses are summed and backpropagated through the network and the weights are updated.
+\end{enumerate}
+
+The Python code used to implement this process is:
+
+{\renewcommand{\baselinestretch}{0.8}\small
+    \begin{verbatim}
+    for batch_idx, (labelled_data, unlabelled_data) in enumerate(
+        zip(cycle(supervised_dataloader), unsupervised_dataloader)):
+    self.ladder.train()
+
+    self.optimizer.zero_grad()
+
+    labelled_images, labels = labelled_data
+    labelled_images = labelled_images.to(self.device)
+    labels = labels.to(self.device)
+
+    unlabelled_images, _ = unlabelled_data
+    unlabelled_images = unlabelled_images.to(self.device)
+
+    inputs = torch.cat((labelled_images, unlabelled_images), 0)
+
+    batch_size = labelled_images.size(0)
+    
+    # pass data through encoders clean
+    y, clean = self.ladder.forward_encoders(inputs, 0.0, True, batch_size)
+    # pass data through encoders noisy
+    y_c, corr = self.ladder.forward_encoders(inputs, self.noise_std, True, batch_size)
+
+    # compute supervised cross entropy cost
+    supervised_cost = self.supervised_cost_function.forward(labeled(y_c, batch_size), 
+                                                            labels)
+    
+    # pass output of encoder through decoder
+    z_est_bn = self.ladder.forward_decoders(F.softmax(y_c), corr, clean, batch_size)
+    zs = clean['unlabeled']['z']
+    
+    # compute unsupervised reconstruction cost for each layer
+    unsupervised_cost = 0
+    for l in range(self.L, -1, -1):
+        unsupervised_cost += self.unsupervised_cost_function.forward(
+            z_est_bn[l], zs[l]) * self.denoising_cost[l]
+     
+    loss = supervised_cost + unsupervised_cost
+    
+    # backpropagate loss through network and update weights
+    loss.backward()
+    self.optimizer.step()
+    \end{verbatim}
+}
+
+For the most part this was implemented without difficulty, though I did discover early on that the loss sometimes became \texttt{nan}.
+By adding a backward hook to the model that would notify me when the values became \texttt{nan} I discovered that this was due to the 
+fact that the ladder requires the data be standardised, which involves dividing the features in the data by the standard deviation of the 
+features. However, in the MNIST dataset the pixels on the edge of the images are always black, and so have a constant value of zero over 
+all the images. The standard deviation of these features is therefore also zero, and dividing by this leads to data becoming \texttt{nan}.
 
 \section{Hyperparameter optimisation} \label{hyper}
 While the weights and biases in a network can be trained by backpropagation, there are parameters of the model that cannot be trained in 
@@ -246,8 +307,8 @@ The size of the latent dimension for an autoencoder affects the quality of the r
 autoencoder may not be able to encode all the important features, whereas a latent dimension that is too large can give the autoencoder 
 too much freedom, causing it to not cluster important samples together.
 
-This hyperparameter is only optimisable for the M1 and M2 models, as the hidden dimensions for the autoencoder is the layer size in the SDAE,
-and the number of classes in the ladder network.
+This hyperparameter is only optimisable for the M1 and M2 models, as the hidden dimensions for the autoencoder in the SDAE and ladder 
+are controlled by the layer size and number of classes.
 
 \subsection{Learning rate}
 The learning rate is a hyperparameter that controls how large of a step is taken each time the weights are updated. It is an often
@@ -332,8 +393,14 @@ as different scales result in different gradients of the output with respect to 
   \item \textbf{Standardisation} involves scaling all the features so that they have mean 0 and variance 1. This is done be computing the mean 
           and standard deviation of the features from the training set, and then subtracting the mean from each feature and dividing by the
           standard deviation.
+          \begin{align}
+            x_{std} = \frac{x - \mu_{x}}{\sigma_{x}}
+          \end{align}
   \item \textbf{Normalisation} into the range [0-1] is done by finding the maximum and the minimum for every feature from the training set,
           subtracting the minimum from every feature and dividing by the maximum minus the minimum.
+          \begin{align}
+            x_{norm} = \frac{x - x_{max}}{x_{max} - x_{min}}
+          \end{align}
 \end{itemize}
 
 For the MNIST dataset I used normalisation, as the pixels take values between 0 and 255 and so scaling this to be between 0 and 1 is 
@@ -353,11 +420,8 @@ network and normalisation was used for M1 and M2.
 The TCGA dataset contains the gene expression levels for 20,350 genes, but in many of the samples some of these genes are missing.
 This can be dealt with by simply discarding the samples with missing genes, but this can be a significant number of samples, and removing 
 a large chunk of the dataset is not a good way to improve a model. Instead it may be possible to impute the missing genes, or drop the 
-genes entirely, reducing the number of features but keeping the number of samples. In the evaluation section there is a brief comparison 
+genes entirely, reducing the number of features but keeping the number of samples. In Section~\ref{imputation} there is a comparison 
 of the performance of dropping the genes, replacing the missing values with the feature mean, and replacing the missing values with zero.
-
-However, to remove any effect of the imputation on the semi-supervised comparisons I removed the samples containing missing genes, leaving 
-9310 samples. 
 
 \subsection{Data partitioning} \label{part}
 \subsubsection{Evaluating models and hyperparameter optimisation}
@@ -412,7 +476,8 @@ ensure that they could not accidentally be used in supervised training.
 \subsubsection{Parallelisation}
 While the cross-validation changes made above reduce the number of iterations to a more manageable size, even a model with a fairly short 
 training time will take a long time to complete the evalutaion. To this end I computed the indices of test/val/train and labelled 
-splits I would use in advance, and serialised these using \texttt{pickle}. This allows all the models to use the exact same folds, allowing
+splits I would use in advance, and serialised these using \texttt{pickle} \footnote{\texttt{pickle} is the most popular Python library 
+for serialisation}. This allows all the models to use the exact same folds, allowing
 for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold. The Cambridge High Performance
 Cluster has 90 GPUs, and so running many smaller jobs in parallel results in a much quicker finish time than running several larger jobs.
 To this end I also wrote several \texttt{bash} scripts to schedule slurm jobs for each model, number of labelled examples and fold. 

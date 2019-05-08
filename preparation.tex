@@ -168,7 +168,7 @@ too high the weights can ``jump" over minima, and even diverge out of a minima, 
 or get stuck in a less desirable local minima. The step size is also proportional to the magnitude of the gradient, allowing the optimizer to 
 take a larger step towards a minima if the gradient is steeper.
 
-\subsubsection{Batch learning}
+\subsubsection{Batch learning} \ref{batch}
 
 A neural network is generally run over multiple samples for each iteration, but not all the samples in the dataset. This is called 
 mini-batch gradient descent and it is the most popular because it has stability advantages over stochastic gradient descent (one sample at a time)
@@ -490,23 +490,13 @@ An explanation can be found in Appendix ~\ref{reparam}.
 
 \section{Semi-supervised learning}
 
-Semi-supervised learning involves leveraging large amounts of unlabelled data to increase model performance on unsupervised learning tasks. 
-In most fields unlabelled data is much easier to obtain than labelled data. For example in the field of computer vision it is very easy to 
-find huge amounts of unlabelled data on the iternet, but finding labelled data can involve hiring human annotators to label the images, an 
-expensive and time consuming process.
+Semi-supervised learning involves leveraging large amounts of unlabelled data to increase model performance on supervised learning tasks. 
+In most fields unlabelled data is much easier to obtain than labelled data. As I mentioned in the Introduction, there is a wealth of gene 
+expression data for many different organisms available online, with the only problem being that often the phenotype a researcher wants 
+to study is not measured or included with this data. With standard supervised learning this data is not usuable, but semi-supervised learning
+can use it to improve performance. 
 
-In the field of genomics there are often cases in which data that is generated in different labs can be usefully combined in machine learning
-models (e.g. The Cancer Genome Atlas). However, the different labs often measure different characteristics of the organisms, and so only a 
-small subset of this combined dataset may have the labels required for a task. In supervised learning the rest of the dataset is now useless,
-but a semi-supervised model can leverage this data.
-
-Perhaps the simplest semi-supervised learning method is \textbf{self-training}. This involves training a classification model on the small
-amount of available labelled data. This model is then run on the unlabelled data, and the datapoints for which the model is most confident
-of the label are added to the labelled dataset. The labelled dataset then becomes larger with (hopefully) mostly correct labels giving the 
-model has a larger training dataset. The methods used in this project are described below, with more in-depth explanations in the 
-implementation section.
-
-\subsection{Dimensionality reduction}
+\subsection{Dimensionality reduction (M1)}
 
 The simplest semi-supervised model in this project relies on the manifold hypothesis. It uses a variational autoencoder to construct a
 reduced dimnesionality feature representation of the data that should cluster similar samples together. The idea is that it should then be 
@@ -665,10 +655,9 @@ the previous models did.
 
 The ladder network is the most recent of the models included in this project having first been described by Valpola in 2014
 ~\cite{DBLP:journals/corr/Valpola14}, and then expanded upon by Rasmus et al. in 2015~\cite{DBLP:journals/corr/RasmusVHBR15}. 
-It can be thought of as building on top of the SDAE, using an unsupervised local denoising 
-criterion in order to improve the supervised performance of a deep feedforward network by using unlabelled data. However, instead of 
-training each layer with its own denoising autoencoder, it instead adds a single deep decoder of the same size as the supervised network 
-to the model, with lateral connections with trainable weights between the equivalent layers in the encoder and decoder.
+It has some similarity to the SDAE, using an unsupervised local denoising criterion, but the structure of the model is very different.
+The model is made up of an encoder and decoder, like an auotencoder, but with lateral connections between the layers in the encoder 
+and decoder.
 
 \begin{figure}[H]
   \centering
@@ -677,33 +666,35 @@ to the model, with lateral connections with trainable weights between the equiva
   \label{fig:ladder}
 \end{figure}
 
-As described by Valpola, the ladder network is a form of hierarchical latent variable model. These differ from the latent variable models
-looked at so far (autoencoder, VAE) in that they attempt to represent the data using hierarchies of latent variables. The model contains
-layers of latent variables, with the higher layers describing \textit{some} of the variance of lower layers by $p(z^{(l)}|z^{(l+1)})$ ($z^{(0)} = x$). 
-In a normal autoencoder the single latent layer $z$ has to encode everything about the data $x$, otherwise the reconstruction it generates 
-will be very poor. With a hierarchical model each layer models some information about $x$, with the higher level latent variables 
-(further from the data) able to be more abstract, as they don't have to encode the lower level details encoded in the previous (lower) layers. For example, using MNIST, $z$ in a simple
-autoencoder cannot just be the digit label as this does not provide enough information to reconstruct the original image well. In a hierarchical latent variable model the highest
-level latent variable is able to be very abstract and only encode the label, as the other layers in the model provide less abstract information that can lead to a good reconstruction.
-The reason this works in the ladder network is due to the lateral connections, which "leak" information from layers in the encoder to the decoder. This means that each decoder layer
+The ladder network is a hierarchical latent variable model. These differ from the latent variable models
+looked at so far (autoencoder, VAE) in that they attempt to represent the data using multiple layers of latent variables, rather than a 
+single layer of latent variables. 
+In a normal autoencoder or VAE the single latent layer $z$ has to encode everything about the data $x$, otherwise the reconstruction it generates 
+will be very poor. With a hierarchical model each layer models only some information about $x$, with the higher layers able to be 
+more abstract, 
+as they don't have to model the lower level details encoded in the lower layers. For example, using MNIST, $z$ in a simple
+autoencoder cannot just be the digit label as this does not provide enough information to reconstruct the original image well. 
+In a hierarchical latent variable model the highest
+level latent variable is able to be very abstract and only encode the label, as the other layers in the model provide less abstract 
+information (e.g about style and location) that can lead to a good reconstruction.
+The reason this works in the ladder network is due to the lateral connections, which "leak" information from layers in the encoder to the decoder. 
+This means that each decoder layer
 receives information both from the previous decoder layer and the corresponding encoder layer. The encoder layer passes some information which
-the subsequent encoder layers then no longer have to model.
+the subsequent encoder layers then no longer have to model, as the decoder will receive it directly from the encoder layer.
 
 This structure with the representation becoming more abstract in higher level layers is also analagous to how supervised learning works, with the layers 
-further into the network modelling more complicated and abstract features with the final layer just outputting a class label (most abstract). For example in convolutional
-neural networks (used extensively in vision), visualisation of the feature maps learned in image classification tasks have shown they are hierarchical. The lower layers
-have high spatial resolution for detecting low-level features like edges and the higher layers have lower spatial resolution but can capture more abstract and complex features
-(like people)~\cite{conv_hierarch}.
+further into the network modelling more complicated and abstract features with the final layer just outputting a class label (most abstract).
 
 At the input to each decoder layer $u^{(l)}$ the corresponding encoder representation $z^{(l)}$ and the output of the previous decoder layer $u^{(l+1)}$ are combined together
-using a combinator function $g$. $g$ has trainable parameters, but this leads to a problem where the lowest possible unsupervised MSE loss \eqref{eq:mse} can be 
-achieved by $g$ learning to copy $z^{(l)}$ and completely ignoring the $u^{(l+1)}$, which corresponds to copying the input directly to the output at the bottom layer.
+using a combinator function $g$. $g$ has trainable parameters, but this leads to a problem where the lowest possible unsupervised loss can be 
+achieved by $g$ in the first layer learning to copy $z^{(0)}$ and completely ignoring the $u^{(l+1)}$, which corresponds to copying the input directly to the output at the bottom layer.
 This completely short circuits the autoencoder, and in order to prevent this, Gaussian noise (sampled from $\mathcal{N}(0, 1))$) is added to the input to each layer 
 in the encoder. Each encoder layer then has the representation $\tilde{z}^{(l)}$ and this noise means that just copying over the input no longer minimises the cost function. 
 
-However if the unsupervised cost function used is simply the reconstruction loss between $\hat{x}$ and $x$ the first layer of the network still has a disproportionate
+However if the unsupervised cost function used is simply the reconstruction loss between the decoder output $\hat{x}$ and the encoder input $x$ the first layer of 
+the network still has a disproportionate
 influence on the loss. In order to remedy this Valpola proposes adding local denoising criterion. This involves adding a cost function at each layer of the decoder,
-namely the MSE~\eqref{eq:mse} between $g(\tilde{z}^{(l)}, u^{(l+1)})$, which is $\hat{z}^{(l)}$, a denoised representation of $\tilde{z}^{(l)}$, and $z^{(l)}$, the clean 
+namely the mean square error between $g(\tilde{z}^{(l)}, u^{(l+1)})$, which is $\hat{z}^{(l)}$, a denoised representation of $\tilde{z}^{(l)}$, and $z^{(l)}$, the clean 
 representation from layer $l$ of the encoder. In order to generate both the clean and noisy encoder representations the encoder is run twice per training iteration,
 once without the added noise to generate $z^{(l)}$, and once with noise to generate $\tilde{z}^{(l)}$. These local cost functions require all the layers to learn in order
 to make a meaningful representation that can be denoised well. Each layer loss is multiplied by a hyperparameter $\lambda_{l}$ according to how important the denoising cost
@@ -715,20 +706,10 @@ of the layer is, before being summed together to give a final unsupervised cost 
 
 The model as explained so far allows the ladder network to learn abstract features in the higher layers. However, without supervised data and a supervised cost function the 
 features learned are unlikely to be useful for the classification task. The small amount of labelled data is used as a guide for this. The encoder of the model is the 
-original classifier so the data is passed through the encoder and cross entropy loss~\eqref{eq:ce} is computed between the output and the labels. During training noise is 
+original classifier so the data is passed through the encoder and cross entropy loss is computed between the output and the labels. During training noise is 
 added at the output of each layer, the same as one run of supervised learning, as the noise acts as a regularizer~\cite{NoiseInj}.
 
-While the illustration of the model (Fig.~\ref{fig:ladder}) makes it look like it has three networks, the first and third column are both the encoder, with the first being 
-noisy and the second being clean. A final overview of the training process is then:
-\begin{enumerate}
-  \item Data is passed into the clean encoder and the output from each layer is saved.
-  \item Data is passed through the noisy encoder, and output from each layer is saved.
-  \item The final output from the noisy encoder is the classification output, and supervised loss is computed with it.
-  \item The output from the noisy encoder is fed into the decoder. At each layer $l$ of the decoder $g(\tilde{z}^{(l)}, u^{(l+1)})$ is calculated,
-        and the unsupervised loss for the layer is computed.
-  \item The unsupervised losses are multiplied by hyperparameter $\lambda_{l}$ and summed together.
-  \item The supervised and unsupervised losses are summed and backpropagated through the network and the weights are updated.
-\end{enumerate}  
+An overview of the training process can be found in Section~\ref{ladder_imp}
 
 \section{Requirements analysis}
 
