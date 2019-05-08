@@ -178,27 +178,6 @@ parallelisation possiblity of much hardware - it's much more efficient to send m
 dataset in memory, and only making one update per pass through the dataset can mean the model takes longer to converge to the best parameters. Mini-batch manages to
 have less noise than stochastic due to averaging over multiple samples, while also taking advantage of parallelisation and not requiring huge amounts of memory.
 
-\subsubsection{Summary}
-
-One complete pass through the dataset is called an \textbf{epoch}. Training involves running forward and backpropagation for a certain number of epochs to minimise the loss
-on the training set and cause the model to converge to a good approximation to the real function. The pseudocode for training the network is shown below.
-\begin{algorithm}
-  \begin{algorithmic}[1]
-    \Procedure{Training}{$i$, $\mathcal{D}$, $\eta$, \texttt{model}, \texttt{loss\char`_function}}
-    \For{$i$ epochs}
-    \For{mini-batch $\mathcal{M}$ in $\mathcal{D}$}
-    \State \texttt{data, labels} = $\mathcal{M}$
-    \State \texttt{out} = \texttt{model(data)}
-    \State $\mathcal{J}$ = \texttt{loss\char`_function(out, labels)}
-    \State \texttt{model}.$\vec{\theta}$ = \texttt{model}.$\vec{\theta}$ - $\eta \nabla_{\vec{\theta}} \mathcal{J}$ 
-    \EndFor
-    \EndFor
-    \EndProcedure
-  \end{algorithmic}
-  \caption{Train neural network via mini-batch gradient descent} 
-  \label{alg:train}
-\end{algorithm}
-
 \section{The manifold hypothesis}
 
 The \textbf{dimensionality} of data is the number of features needed to specify the data. For example, a very popular machine learning dataset
@@ -769,25 +748,21 @@ With these models selected and the success criteria defined above the requiremen
 I had some previous knowledge about neural networks and machine learning techniques through completing \textit{Introduction to data science}
 and \textit{Artificial intelligence I} as part of Part IB, and completing the machine learning course by Andrew Ng on Coursera. However,
 I had no previous experience with autoencoders, semi-supervised learning or Bayesian inference, and also little experience of optimising 
-a machine learning model. To this end I decided upon a list of essential reading:
+a machine learning model. To this end I decided upon a list of essential reading:~\cite{ML_Bayes}~\cite{Goodfellow-et-al-2016}
+~\cite{DBLP:journals/corr/KingmaW13}~\cite{DBLP:journals/corr/KingmaRMW14}~\cite{Vincent:2010:SDA:1756006.1953039}
+~\cite{DBLP:journals/corr/Valpola14}~\cite{DBLP:journals/corr/RasmusVHBR15}.
 
-\begin{itemize}
-  \item Lecture slides for \textit{Machine learning and Bayesian inference} by Holden~\cite{ML_Bayes}
-  \item \textit{Deep learning} by Goodfellow et al.~\cite{Goodfellow-et-al-2016}
-  \item \textit{Auto-encoding variational Bayes} by Kingma et al.~\cite{DBLP:journals/corr/KingmaW13}
-  \item \textit{Semi-supervised learning with deep generative models} by Kingma et al.~\cite{DBLP:journals/corr/KingmaRMW14}
-  \item \textit{Stacked denoising autoencoders: learning useful representations in a deep network with a local denoising criterion} by 
-        Vincent et al.~\cite{Vincent:2010:SDA:1756006.1953039}
-  \item \textit{From neural PCA to deep unsupervised learning} by Valpola~\cite{DBLP:journals/corr/Valpola14}
-  \item \textit{Semi-supervised learning with ladder networks} by Rasmus et al.~\cite{DBLP:journals/corr/RasmusVHBR15}
-\end{itemize}
+\section{Software engineering}
+
+All the models in this project were developed iteratively. They were first constructed in their most basic form, and tested on MNIST 
+data to determine whether they were working correctly. Enhancements such as early stopping and other hyperparameter optimisations were 
+added in stages, and the models were tested at each stage to ensure that the new code had not led to any problems.
 
 \section{Resources}
 
 \subsection{Language and libraries}
-I made the decision to use Python, as it has support for two of the most popular and intuitive deep learning libraries, PyTorch and 
-Tensorflow. Both frameworks are computationally similar, using a tape-based automatic differentiation system for backpropagation, and a C/C++ 
-engine for speed. After reading through an introduction to both languages, and looking at a comparison of the features offered I decided to 
+I made the decision to use Python, as it has support for the deep learning library PyTorch.  After trying both PyTorch and Tensorflow, 
+and looking at a comparison of the features offered, I decided to 
 use PyTorch, as it felt more flexible, allowing the user to easily stop and start training at any point, and allowing much easier access 
 to intermediate variables for debugging. In Tensorflow all operations have to be run using a Session object, and the only variables a 
 user can see are those returned from the session object.

@@ -91,7 +91,27 @@ deeper model winning on more complicated datasets and the shallower on less comp
 
 \subsection{Model training}
 
-All the models were trained using mini-batch gradient descent, as described in Section~\ref
+All the models were trained using mini-batch gradient descent, as described in Section~\ref{batch}. One complete pass through the dataset 
+is called an \textbf{epoch} and 
+training involves running forward and backpropagation for a certain number of epochs to minimise the loss
+on the training set and cause the model to converge to a good approximation to the real function. The pseudocode for training the network 
+is shown below.
+\begin{algorithm}
+  \begin{algorithmic}[1]
+    \Procedure{Training}{$i$, $\mathcal{D}$, $\eta$, \texttt{model}, \texttt{loss\char`_function}}
+    \For{$i$ epochs}
+    \For{mini-batch $\mathcal{M}$ in $\mathcal{D}$}
+    \State \texttt{data, labels} = $\mathcal{M}$
+    \State \texttt{out} = \texttt{model(data)}
+    \State $\mathcal{J}$ = \texttt{loss\char`_function(out, labels)}
+    \State \texttt{model}.$\vec{\theta}$ = \texttt{model}.$\vec{\theta}$ - $\eta \nabla_{\vec{\theta}} \mathcal{J}$ 
+    \EndFor
+    \EndFor
+    \EndProcedure
+  \end{algorithmic}
+  \caption{Train neural network via mini-batch gradient descent} 
+  \label{alg:train}
+\end{algorithm}
 
 \subsection{Multilayer perceptron}
 The multilayer perceptron is a fully supervised model implemented to compare the performance between a fully supervised approach and the 
