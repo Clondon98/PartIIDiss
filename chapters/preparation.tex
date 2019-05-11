@@ -185,13 +185,13 @@ random noise, suggesting that there is a lot of redundancy in the MNIST features
   \centering
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \includegraphics[scale=4]{figs/rand_noise.png}
+    \includegraphics[scale=.5]{figs/rand_noise.pdf}
     \caption{Pixel values selected randomly}
   \end{subfigure}
   \hspace{0.1\textwidth}
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \includegraphics[scale=4]{figs/digit.png}
+    \includegraphics[scale=.5]{figs/digit.pdf}
     \caption{MNIST digit}
   \end{subfigure}
   \caption{Demonstrating redundancy of features in MNIST dataset}
@@ -230,7 +230,7 @@ features. This prevents the network from simply learning the identity function, 
 \subsubsection{Training}
 Autoencoders can be trained end to end using backpropagation as explained in section \ref{backprop}. The target $\vec{x}$ and output 
 $\vec{\hat{x}}$ are both vectors and so 
-the squared \textbf{Euclidean distance}\footnote{also known as mean square error} is used as the loss per datapoint. Both the encoder weights 
+the \textbf{squared Euclidean distance}\footnote{also known as mean square error} is used as the loss per datapoint. Both the encoder weights 
 $\vec{\theta}$ and 
 decoder weights $\vec{\phi}$ 
 are trained at the 
@@ -246,7 +246,8 @@ has to remove the noise. They can be trained in the same way as a simple autoenc
 Denoising autoencoders were used extensively to pre-train deep neural networks in the early 2010s, but this has become less popular with the 
 introduction of new \textbf{non-saturating} activation functions such as ReLU which have helped deal with the vanishing gradient problem.
 \footnote{when sigmoid was used as the activation function the gradient in each layer would usually be less than one, and so the multiplication 
-of these gradients in backpropagation would lead to very small gradients in the lower layers}
+of these gradients in backpropagation would lead to very small gradients in the lower layers, leading to very slow updating of the weights in 
+these layers}
 
 \subsection{Variational autoencoders} \label{vae}
 
@@ -337,10 +338,11 @@ expression data for many different organisms available online, with the only pro
 to study is not measured or included with this data. With standard supervised learning this data is not usuable, but semi-supervised learning
 can use it to improve performance. 
 
-\subsection{Dimensionality reduction (M1)}
+\subsection{Dimensionality reduction (M1)} \label{m1}
 
 The simplest semi-supervised model in this project relies on the manifold hypothesis. It uses a variational autoencoder to construct a
-reduced dimnesionality feature representation of the data that should cluster similar samples together. The idea is that it should then be 
+reduced dimensionality feature representation of the data that should cluster similar samples together, and is partially based 
+on the Kingma M1 model~\cite{DBLP:journals/corr/KingmaRMW14}. The idea is that it should then be 
 easier to classify the datapoints in this latent dimension, even with a limited amount of labelled data.
 
 \subsection{Network pre-training} \label{sdae}
@@ -365,7 +367,7 @@ The idea behind the unsupervised pre-training with a stacked denoising autoencod
 The pre-training procedure provides an initialization point for the supervised training where the parameters are restricted, hopefully to an area 
 closer to the global minimum for the loss function~\cite{Erhan:2010:WUP:1756006.1756025}.
 
-\subsection{The semi-supervised VAE} \label{ssVAE}
+\subsection{The semi-supervised VAE (M2)} \label{ssVAE}
 
 The semi-supervised VAE is a model due to Kingma et al.~\cite{DBLP:journals/corr/KingmaRMW14} that extends the VAE to include label information. 
 The assumption used is that the data $\vec{x}$ is generated from both a discrete label $y$ and a continuous latent representation 
@@ -542,7 +544,7 @@ defined above, the requirements can be constructed:
   \textbf{Requirement} & \textbf{Priority} \\ 
   \midrule
   Implement simple multilayer perceptron & Medium \\
-  Implement Kingma M1 model & Medium \\
+  Implement M1 model & Medium \\
   Implement stacked denoising autoencoder & Medium \\
   Implement semi-supervised autoencoder & High \\
   Semi-supervised autoencoder achieves close to original paper \\ accuracy on MNIST & Medium \\

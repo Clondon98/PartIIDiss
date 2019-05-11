@@ -72,7 +72,7 @@ model agnostic as possible. To this end I implemented a base class \texttt{Model
 \end{figure}
 
 The \texttt{dataset\_name} field is used to save the model state in the correct place when using early stopping, and the \texttt{device} field is 
-used to ensure that the GPU is used if available, and all new tensors created are placed on the GPU. Not placing the tensors on the correct device 
+used to ensure that GPUs are used if available. Not placing the tensors on the correct device 
 leads to errors as PyTorch cannot perform operations on tensors located on different devices.
 
 Each model has different fields depending on the structure of the model, so initialisation of the models could not be a general method. 
@@ -82,10 +82,10 @@ which took the same arguments for all models:
   \texttt{hyperparameter\_loop(fold, validation\_fold, state\_path, results\_path, dataset\_name, dataloaders, input\_size, num\_classes, max\_epochs, device)}
 \end{center}
 
-This method loops through a pre-selected set of hyperparameters to determine the best performing.
+This method loops through a pre-selected set of hyperparameters to determine the best performing (Section ~\ref{hyper}).
 This was possible because the hyperparameters chosen for searching over were not dependent on the input dataset, and were instead selected 
-to give good general performance e.g. the ladder network hyperparameter search constructs a ladder network with 1-4 hidden layers, with the 
-deeper model winning on more complicated datasets and the shallower on less complicated.
+to give good general performance e.g. the ladder network hyperparameter search constructs ladder networks with 1-4 hidden layers, and
+compares them, with the deeper model generally winning on more complicated datasets and the shallower on less complicated.
 
 \subsection{Model training}
 
@@ -93,14 +93,14 @@ All the models were trained using mini-batch gradient descent, as described in S
 
 \subsection{Multilayer perceptron}
 The multilayer perceptron is a fully supervised model implemented to compare the performance between a fully supervised approach and the 
-semi-supervised approaches used in the project. The model simply uses the Classifier base module and trains it on only the labelled data 
-using the Adam optimizer for gradient descent.
+semi-supervised approaches used in the project. The model simply uses the Classifier base module and trains it on only the labelled data
+using cross entropy loss~\eqref{eq:ce}.
 
 \subsection{M1}
-The M1 model is partially taken from the Kingma paper~\cite{DBLP:journals/corr/KingmaRMW14}. It is made up of a VAE Encoder,
+The M1 model described in Section~\ref{m1} It is made up of a VAE Encoder,
 Decoder and Classifier 
 module. The VAE Encoder and Decoder are initially trained in an unsupervised way using both the labelled and unlabelled data. In order 
-to train them I made the decision to normalise all the data to the range [0-1] and to use a Sigmoid function 
+to train them I made the decision to normalise all the data to the range [0-1] (Section~\ref{normalise}) and to use a Sigmoid function 
 \footnote{the sigmoid function is of
 the form $f(x) = \frac{1}{1+e^{-x}}$ and has the domain of the real numbers and range [0-1]} on the output of the Decoder, to ensure the output range 
 was the same as the input. This was done for numerical stability reasons, as it was found that using unnormalised or standardised data 
@@ -108,8 +108,8 @@ as input to the VAE would cause the variance of the latent distribution to becom
 output of the VAE becoming \texttt{nan}.
 
 Once the VAE Encoder and Decoder are trained the Decoder is discarded. The labelled data is passed through the VAE Encoder, and the samples
-from the distributions are used as input to the Classifier. The Classifier is then trained using this labelled data, using cross entropy 
-loss as the loss function. 
+from the distributions are used as input to the Classifier. The Classifier is then trained on this labelled data using cross entropy 
+loss~\eqref{eq:ce}. 
 
 This model relies on the manifold hypothesis. The training of the VAE hopefully clusters similar samples together by finding a lower
 dimensional manifold, allowing the Classifier to more easily separate the classes using only a small amount of labelled data.
@@ -132,32 +132,70 @@ through the VAE Encoder and then through the Classifier.
 \end{figure}
 
 \subsection{Stacked denoising autoencoder}
-The SDAE was constructed by first constructing a list of Encoders. Each Encoder had the same input size as the latent dimension of the 
+The SDAE was constructed by first constructing a list of one-layer Encoders. Each Encoder had the same input size as the latent dimension of the 
 previous Encoder. All the Encoders use ReLU as the output activation function, and the final output layer is a simple \texttt{nn.Linear} layer with 
-no output activation. This means the structure of the network is very similar to the Classifier, but it enables easy unsupervised pretraining.
+no output activation. This means that passing data through all the encoder followed by the output layer acts much like 
+a Classifier module, but it enables easy unsupervised pretraining.
 
 The unsupervised pretraining is performed by taking each encoder, starting with the first hidden layer, and adding the corresponding 
 Decoder. This is where the pairing of the Encoder and Decoder is very useful, as by extracting the layer sizes of the Encoder they 
 can be passed straight into the Decoder contructor to create the complementary Decoder. Then Gaussian noise is added to the input data,
 using the PyTorch function \texttt{torch.randn\_like(data)}, which creates a Gaussian noise tensor of the same size as the data that can
-simply be added to the data. This Encoder/Decoder pair is then trained like a normal autoencoder using mean square error loss, and 
-this is the local denoising criterion.
+simply be added to the data. This Encoder/Decoder pair is then trained like a normal autoencoder, training a single layer of the network.
 
-Once each hidden layer has been trained like this, the whole network is trained using labelled data to ensure that the hidden layers 
-are detecting the right features for the task. Classification just involves passing the data through all the Encoders and then through 
+Once each hidden layer has been trained like this, the whole network is trained using labelled data to optimise the network for the 
+supervised learning task. Classification just involves passing the data through all the Encoders and then through 
 the output layer.
 
-\subsection{M2}
+\subsection{Semi-supervised VAE (M2)}
 
-The M2 model is made up of a Classifier, a Variational Encoder and a Decoder. It is again taken from the Kingma paper~\cite{DBLP:journals/corr/KingmaRMW14}.
+The M2 model (Section~\ref{ssVAE}) is made up of a Classifier, a Variational Encoder and a Decoder.
 Data is first passed through the Classifier to get a prediction for the label. The loss functions used were given in Section~\ref{ssVAE}, 
 and depend on whether the data is labelled or unlabelled. If the data is labelled then the data is passed into the Variational Encoder 
 with the correct label, and the output of the Variational Encoder is passed into the Decoder which attempts to reconstruct the data.
 If the data is unlabelled then the data and each possible label are passed into the Variational Encoder, and the reconstruction loss 
 is computed for all the combinations. This seems like it would greatly increase the training time, but this can actually be done 
 by creating a larger tensor with every unlabelled sample in the batch paired with each label. This operations on this larger tensor 
-can be computed in parallel on the GPU so the performance hit is not as drastic as this operation might suggest. The overall 
-structure of the model is shown below:
+can be computed in parallel on the GPU so the performance hit is not as drastic as this operation might suggest. The code for performing this 
+operation is:
+
+{\renewcommand{\baselinestretch}{0.8}\small
+    \begin{verbatim}
+      def minus_U(self, x, pred_y):
+        # gives probability for each label
+        logits = F.softmax(pred_y, dim=1)
+
+        # make a vector of length num_classes*batch_size with each 
+        # label repeated batch_size times
+        y = self.make_labels(x.size(0))
+        # convert label vector to one-hot
+        y_onehot = self.onehot(y)
+        # repeat data num_classes times (x and y now have same length)
+        x = x.repeat(self.num_classes, 1)
+
+        # pass each datapoint with each label through encoder and decoder
+        recons, mu, logvar = self.M2(x, y_onehot)
+        
+        # calculate labelled loss for each pair of datapoint and label (in parallel)
+        minus_L = self.minus_L(x, recons, mu, logvar, y)
+        # reshape output so all of num_class losses for each datapoint are together
+        minus_L = minus_L.view_as(logits.t()).t()
+        
+        # multiply each labelled loss by the probability of the label
+        minus_L = (logits * minus_L).sum(dim=1)
+
+        # compute the entropy of the logits
+        H = self.H(logits)
+
+        # calculate -U
+        minus_U = H + minus_L
+
+      return minus_U.mean()
+    \end{verbatim}
+}
+
+The overall structure of the model for unlabelled data is shown below. For labelled data the label passed into the Variational Encoder 
+and Decoder comes from the dataset, not the classifier.
 
 \begin{figure}[H]
   \centering
@@ -175,17 +213,20 @@ structure of the model is shown below:
     \draw [decorate,decoration={brace,amplitude=5pt,mirror,raise=-1ex}]
       (-0.5,0.5) -- (-0.5,-0.5) node[left,midway]{$x$};
   \end{tikzpicture}
-  \caption{Model structure of M2}
+  \caption{Model structure of M2 for training on unlabelled data}
 \end{figure}
 
-The main diffculties in implementing this model came from conflicting information found online, and the lack of other implementations to view. 
-The original paper can be quite hard to decipher, often skipping over difficult derivations, and at one time seemingly contradicting 
-itself in the space of two lines. One of the original blog posts I viewed~\cite{Semisupe95:online} did not pass the label into the 
+The main diffculties in implementing this model came from conflicting information found online. 
+The original paper~\cite{DBLP:journals/corr/KingmaRMW14} can be quite hard to decipher, often skipping over difficult derivations, and 
+at one point seemingly contradicting itself on the structure of the model.
+One of the original blog posts I viewed~\cite{Semisupe95:online} did not pass the label into the 
 encoder, and after corresponding with the author I found it was due to a different interpretation of a line in the paper. However,
-Kingma's implementation (available at: https://github.com/dpkingma/nips14-ssl) does do this and so that is the model I followed. A 
-helpful reference implementation I found is available at https://github.com/wohlert/semi-supervised-pytorch, but I believe my implementation is 
+Kingma's implementation (available at: https://github.com/dpkingma/nips14-ssl) does pass the label into the encoder and so that is the 
+model I followed. 
+
+A helpful reference implementation I found is available at https://github.com/wohlert/semi-supervised-pytorch, but I believe my implementation is 
 easier to read and also performs better, as I use the inbuilt PyTorch models for computing the cross entropy loss and use the Kingma way 
-of computing the KLD~\cite{DBLP:journals/corr/KingmaW13}. I was able to contribute to the Wohlert repository too, finding a bug in the 
+of computing the KLD~\cite{DBLP:journals/corr/KingmaW13}. I was able to contribute to the repository, finding a bug in the 
 variational autoencoder code where the natural logarithm of the variance was restricted to values greater than zero (this is incorrect).
 
 This model again requires that the data be normalised to the range [0-1] (as in M1) as otherwise the loss explodes and becomes 
@@ -197,13 +238,14 @@ Once the model is trained the only part used in classification is the Classifier
 
 The ladder network doesn't make use of any of the base modules, as it requires a lot of extra parts. My original implementation 
 was based on an implementation found at https://github.com/abhiskk/ladder. However, this implementation is very slow, as at one point 
-tensors on the GPU are shifted onto the CPU to perform operations using numpy, which I found was unnecessary. The implementation also did 
-not achieve the desired accuracy on MNIST. For this reason I based my implementation on a Tensorflow implementation written by Rinu Boney
+tensors on the GPU are shifted onto the CPU to perform operations using numpy, which is unnecessary. The implementation also did 
+not achieve the desired accuracy on MNIST. For this reason I instead based my implementation on a Tensorflow implementation written by 
+Rinu Boney
 (available at https://github.com/rinuboney/ladder), who works at Curious AI, the same company as Rasmus, the author of
-the 2015 paper~\cite{DBLP:journals/corr/RasmusVHBR15}. The code required many modifications to move from Tensorflow to PyTorch,
+the 2015 paper~\cite{DBLP:journals/corr/RasmusVHBR15}. The code required extensive rewriting to move from Tensorflow to PyTorch,
 but my implementation is now the fastest and most accurate PyTorch implementation of the model I could find on the internet.
 
-While the model is described in some detail in Section~\ref{ladder} the training process is as below: 
+The model is described in some detail in Section~\ref{ladder}, and the overall training process is as below: 
 \begin{enumerate}
     \item Data is passed into the clean encoder and the output from each layer is saved.
     \item Data is passed through the noisy encoder, and output from each layer is saved.
@@ -240,7 +282,7 @@ The Python code used to implement this process is:
     # pass data through encoders noisy
     y_c, corr = self.ladder.forward_encoders(inputs, self.noise_std, True, batch_size)
 
-    # compute supervised cross entropy cost
+    # compute supervised cross entropy loss
     supervised_cost = self.supervised_cost_function.forward(labeled(y_c, batch_size), 
                                                             labels)
     
@@ -248,7 +290,7 @@ The Python code used to implement this process is:
     z_est_bn = self.ladder.forward_decoders(F.softmax(y_c), corr, clean, batch_size)
     zs = clean['unlabeled']['z']
     
-    # compute unsupervised reconstruction cost for each layer
+    # compute unsupervised reconstruction loss for each layer
     unsupervised_cost = 0
     for l in range(self.L, -1, -1):
         unsupervised_cost += self.unsupervised_cost_function.forward(
@@ -264,9 +306,10 @@ The Python code used to implement this process is:
 
 For the most part this was implemented without difficulty, though I did discover early on that the loss sometimes became \texttt{nan}.
 By adding a backward hook to the model that would notify me when the values became \texttt{nan} I discovered that this was due to the 
-fact that the ladder requires the data be standardised, which involves dividing the features in the data by the standard deviation of the 
+fact that the ladder requires the data be standardised (Section~\ref{normalise}), which involves dividing the features in the data by the standard deviation of the 
 features. However, in the MNIST dataset the pixels on the edge of the images are always black, and so have a constant value of zero over 
 all the images. The standard deviation of these features is therefore also zero, and dividing by this leads to data becoming \texttt{nan}.
+This can be fixed by adding a small positive value to the denominator when standardising.
 
 \section{Hyperparameter optimisation} \label{hyper}
 While the weights and biases in a network can be trained by backpropagation, there are parameters of the model that cannot be trained in 
@@ -280,7 +323,7 @@ performance of the models, and the best set of hyperparameters is selected this 
 
 However, optimising hyperparameters this way results in every combination having to be run again for each additional value of each
 hyperparameter used. Depending on how long it takes each model to train, this can result in hours more training time. 
-Therefore, I chose to optimise over a small number of hyperparameters that I feel are most likely to affect the performance of the models.
+Therefore, I chose to optimise over a small number of hyperparameters that I felt were most likely to affect the performance of the models.
 
 \subsection{Number of hidden layers}
 The number of layers in a model is important because it controls the capacity~\cite{Goodfellow-et-al-2016} of the neural network. If the 
@@ -312,7 +355,7 @@ are controlled by the layer size and number of classes.
 The learning rate is a hyperparameter that controls how large of a step is taken each time the weights are updated. It is an often
 optimised hyperparameter because if it is too large it can overshoot loss minima, resulting in worse performance, and if it is too 
 small it can take a very long time for the gradient descent to converge. However, I have chosen not to search over different learning 
-rates because of the additional time it would take, and the fact that I am using the Adam optimizer. The Adam optimizer keeps a 
+rates because of the additional time it would take, and the fact that I am using the \textbf{Adam optimizer}. The Adam optimizer keeps a 
 learning rate per parameter, and updates these learning rates according to the first and second moments of the gradients with respect to each 
 parameter~\cite{DBLP:journals/corr/KingmaB14}. This means that while an initial learning rate still has to be provided, it affects the 
 performance much less.
@@ -352,10 +395,6 @@ The MNIST dataset is one of the most popular in machine learning, being used to 
 \end{table}
 
 In this project it is again used for benchmarking, and for ensuring that the models are performing similarly to their original implementations.
-It does have several similarities with gene expression data though, being highly dimensional, but with only a few features being relevant to 
-classification. In general, only a very few pixels are actually needed to distinguish between the different digits (and most pixels near the 
-edge of the image are completely useless, being black in almost all the images), while in gene expression it is usually only a few genes 
-that control each phenotype.
 
 \subsubsection{The Cancer Genome Atlas}
 The Cancer Genome Atlas is a project cataloguing sequencing data for several different types of cancer. The data generated by the TCGA Research 
@@ -377,14 +416,12 @@ RNA-Seq to attempt to classify the different types of cancer using only their ge
 \end{table}
 \footnotetext{TPM is transcripts per million, where the total number of reads mapped to a gene is normalised by the length of the gene} 
 
-Some of the samples in this dataset are missing gene expression values, and these samples are not used for comparing semi-supervised model
-performance. However imputation of missing data is an important topic in bioinformatics and so I cover this in Section~\ref{imput}.
-
-\subsection{Data normalisation}
+\subsection{Data normalisation} \label{normalise}
 Data normalisation can help neural networks by allowing gradient descent to reach a minima more easily. Features having large ranges
 can result in larger gradients of the loss, resulting in larger steps being taken at the weights. This can cause the 
 gradient descent to oscillate around minima and take far longer to reach a good value. The two most common forms of data normalisation 
-are standardisation and normalisation to the range [0-1]. Having all the features with similar scales is also important for saliency computation,
+are standardisation and normalisation to the range [0-1]. Having all the features with similar scales is also important for saliency computation
+(Section~\ref{saliency}),
 as different scales result in different gradients of the output with respect to the input, preventing them from being directly comparable.
 
 \begin{itemize}
@@ -407,9 +444,7 @@ and similar to the transform used in the semi-supervised VAE paper~\cite{DBLP:jo
 either zero or one, without the range inbetween).
 
 For the gene expression datasets I tried both standardisation and normalisation. Standardisation worked well for the non-VAE based models,
-but the M1 and M2 models experienced significant numeric instability, resulting in the variances of the normal distribution in the latent dimension 
-becoming very small, which resulted in the KLD loss exploding.
-This eventually lead to the output of the autoencoder becoming \texttt{nan}. From what I could discern this is a somewhat common problem in
+but the M1 and M2 models experienced significant numeric instability. This is a somewhat common problem in
 VAEs, especially when the dimensionality of the data is higher than the number of samples in the dataset. The VAEs responded well to normalised
 data, while the other models experienced similar or worse performance. Therefore standardisation was used for the MLP, SDAE and ladder 
 network and normalisation was used for M1 and M2.
@@ -432,15 +467,15 @@ the accuracies for each fold.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=1]{figs/k_fold.pdf}
+  \includegraphics[scale=0.75]{figs/k_fold.pdf}
   \caption{One split of 5-fold cross validation}
 \end{figure}
 
 The $k$-fold cross-validation used in this project is \textbf{stratified}. This keeps the proportion of each class in each fold
 close to the proportion of each class in the overall dataset. This is especially important when classes are unbalanced, as performing 
 non-stratified cross-validation could result in biasing the model towards an uncommon class, or not including any samples of a class in the 
-fold. It has also been shown by Kohavi~\cite{Kohavi:1995:SCB:1643031.1643047} stratified cross-validation generally has lower bias and variance when estimating model 
-accuracies than non-stratified.
+fold. It has been shown by Kohavi~\cite{Kohavi:1995:SCB:1643031.1643047} stratified cross-validation generally has lower bias and variance when estimating model 
+accuracies.
 
 In order to perform hyperparameter optimisation (Section~\ref{hyper}) there needs to be a validation dataset, to 
 compare the performance of each set of hyperparameters. Performing hyperparameter optimisation on the test set will lead to overestimating 
@@ -460,7 +495,7 @@ $2nk$ and also ensures that there is always a validation set to perform early st
 validation, or test data at some point.
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=1]{figs/test_val_split.pdf}
+  \includegraphics[scale=0.75]{figs/test_val_split.pdf}
   \caption{Splitting test set into a test and val set for hyperparameter optimisation}
 \end{figure}
 
@@ -468,19 +503,18 @@ validation, or test data at some point.
 While the datasets used in this project include labels for all the samples, the focus of this project is on semi-supervised learning.
 In order to give an overall view of the performance for each dataset I performed evaluation of the models with different amounts of
 labelled data. For each number of labelled samples ($n$) used, I selected $n$ samples from the train set in a stratified way to use as the 
-labelled dataset. The unlabelled dataset was then all the remaining samples in the train set, and these were assigned the dummy label $-1$ to 
-ensure that they could not accidentally be used in supervised training.
+labelled dataset. The unlabelled dataset was then all the remaining samples in the train set.
 
 \subsubsection{Parallelisation}
 While the cross-validation changes made above reduce the number of iterations to a more manageable size, even a model with a fairly short 
-training time will take a long time to complete the evalutaion. To this end I computed the indices of test/val/train and labelled 
+training time will take a long time to complete the evaluation. To this end I computed the indices of test/val/train and labelled 
 splits I would use in advance, and serialised these using \texttt{pickle} \footnote{\texttt{pickle} is the most popular Python library 
 for serialisation}. This allows all the models to use the exact same folds, allowing
 for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold. The Cambridge High Performance
 Cluster has 90 GPUs, and so running many smaller jobs in parallel results in a much quicker finish time than running several larger jobs.
 To this end I also wrote several \texttt{bash} scripts to schedule slurm jobs for each model, number of labelled examples and fold. 
 
-\section{Saliency}
+\section{Saliency} \label{saliency}
 Neural networks often act as a black box, with no indication to the programmer or user of what the network is doing, and what it deems 
 to be important. One way of extracting that is through the use of saliency maps (first introduced in~\cite{DBLP:journals/corr/SimonyanVZ13}), 
 which intend to give the user some idea of which inputs 
@@ -496,32 +530,12 @@ images it has been shown to make much clearer images, and highlight better the f
 
 I implemented both of these methods, basing my implementation on this very simple implementation: https://github.com/Ema93sh/pytorch-saliency.
 The guided backpropagation version works by registering a hook on each ReLU module that sets the gradient being backpropagated through it 
-to zero if it is less than zero. The code below implements this: by using the saved forward ReLU outputs as a mask, and setting any 
-negative gradient input values to zero it ensures that the backpropagated gradient leaving the rectifier is only non-zero if both the forward 
-pass output and the backwards pass input gradient are greater than zero.
-
-{\renewcommand{\baselinestretch}{0.8}\small
-    \begin{verbatim}
-    def relu_backward_hook_function(self, module, grad_in, grad_out):
-        """
-        If there is a negative gradient, change it to zero
-        """
-        # Get last forward output
-        corresponding_forward_output = self.forward_relu_outputs[-1]
-        positive_mask = (corresponding_forward_output > 0).type_as(
-            corresponding_forward_output)
-
-        modified_grad_out = positive_mask * torch.clamp(grad_in[0], min=0.0)
-
-        del self.forward_relu_outputs[-1]  # Remove last forward output
-        return (modified_grad_out,)
-    \end{verbatim}
-}
+to zero if it is less than zero.
 
 \section{Command line tool}
 One of the success criteria of this project was to build a tool, and so the \texttt{main.py} file in the repository provides a command line tool 
 for building a semi-supervised learning model. The tool uses many of the techniques described earlier in this section, but many of the 
-decisions made are based on results in the evaluation section, so an overall description of the tool is available in Section~\ref{tool}.
+decisions made are based on results in the evaluation section, so the description of the tool is available in Section~\ref{tool}.
 
 \section{Repository overview}
 
@@ -548,10 +562,10 @@ decisions made are based on results in the evaluation section, so an overall des
     \caption{Directory structure of the repository}
 \end{figure}
 
-The top level of the repository contains the files \texttt{main.py} and \texttt{requirements.txt}. These is the script for running the tool,
+The top level of the repository contains the files \texttt{main.py} and \texttt{requirements.txt}. These are the script for running the tool,
 and the packages I am using in the virtual environment respectively. \texttt{Models} contains all the code for the models used in this project,
 including the base modules in \texttt{BuildingBlocks} and the abstract class \texttt{Model.py}.
 \texttt{scripts} contains all the python and bash scripts used in 
 obtaining the results for the evaluation section, but this folder was created for tidiness and the scripts have to be moved up one level into 
 \texttt{Semi-Supervised\_Models} to be run. \texttt{utils} contains functions for loading data, along with the code for early stopping and 
-making the MNIST and TCGA folds. \texttt{Saliency} contains all the code for generating saliency maps for MNIST.
+making the MNIST and TCGA folds. \texttt{Saliency} contains all the code for generating saliency maps.

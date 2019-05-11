@@ -2,9 +2,11 @@
 
 \textit{In this section I will compare the performance of the semi-supervised models on both the MNIST and TCGA datasets, and will compare these 
 to a fully supervised MLP operating on only the labelled data. I then discuss how these factored into the choices made for a more general
-tool.}
+tool. All the results in this section can be replicated using the Python and bash scripts found in the scripts folder}
 
-\section{MNIST results}
+\section{MNIST}
+
+\subsection{Semi-supervised results}
 The MNIST results are important for establishing whether the ladder and M2 models have been correctly implemented, as they should 
 achieve close to paper accuracy. It should also give some indication of how the models are expected to perform on the gene expression data.
 
@@ -30,8 +32,7 @@ total number of datapoints in the test set, given below as a percentage of point
   \caption{MNIST 5-fold cross-validation percentage accuracies} 
 \end{table}
 
-\subsection{Performance comparisons}
-
+\subsubsection{Performance comparisons}
 The MLP and SDAE do not have standard accuracies that can be obtained from papers, but the slight performance boost the SDAE provides 
 over the MLP when only some of the data is labelled is what was expected.
 
@@ -50,6 +51,10 @@ The ladder results are again comparable, with my implementation averaging 96.64 
 for 100 labelled samples.
 The discrepancy is likely due to the slight differences in model structure. I optimise over 1 to 4 hidden layers of fixed size,
 while Rasmus uses 5 hidden layers with an overcomplete (1000 neurons) first hidden layer.
+
+\subsection{Saliency}
+
+Saliency maps computed using both normal and guided backpropagation are below.
 
 \section{TCGA results}
 
@@ -230,8 +235,7 @@ slightly different features and class boundaries. The combination of the models 
 different features and boundaries can combine to make a better classifier. The simplest way of doing this is to take the softmax 
 output of the different models and sum them together. Dividing by the number of models then gives a new probability distribution that is the
 average of the previous models. Taking the maximum of this distribution is the predicted label, and if the models have learned complementary
-features this will improve the accuracy. Combining the M2 and ladder predictions seems unlikely to result in a large boost in performance
-due to the similar successes and failures witnessed in their confusion matrices, but the results are below:
+features this will improve the accuracy. Combining the M2 and ladder predictions produces the results below:
 \begin{table}[H]
   \label{tab:ensemble}
   \small % text size of table content
