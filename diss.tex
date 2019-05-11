@@ -1,4 +1,3 @@
-% Template for a Computer Science Tripos Part II project dissertation
 \documentclass[12pt,a4paper,twoside,openany]{report}
 \usepackage[backend=biber]{biblatex}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
@@ -27,6 +26,11 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{dirtree}
+\usepackage{titlesec}
+
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{40pt}
 
 \addbibresource{references.bib}
 \usetikzlibrary{arrows,backgrounds}
@@ -76,28 +80,54 @@ Trinity College \\[5mm]
 % Proforma, table of contents and list of figures
 
 \pagestyle{plain}
+ 
+\newpage
+\section*{Declaration}
+
+I, Charles London of Trinity College, being a candidate for Part II of the Computer
+Science Tripos, hereby declare
+that this dissertation and the work described in it are my own work,
+unaided except as may be specified below, and that the dissertation
+does not contain material that has already been used to any substantial
+extent for a comparable purpose. 
+
+I, Charles London of Trinity College, 
+am content for my dissertation to be made available to the students and staff of the University.
+
+\bigskip
+\leftline{Signed}
+
+\medskip
+\leftline{Date \today}
 
 \chapter*{Proforma}
 
 {\large
 \begin{tabular}{ll}
-Name:               & \bf Charles London                      \\
-College:            & \bf Trinity College                     \\
+Candidate Number:   & \bf                    \\
 Project Title:      & \bf A tool for phenotype prediction from cell genotype  \\
-Examination:        & \bf Computer Science Tripos -- Part II, March 2019  \\
-Word Count:         & \bf 1587\footnotemark[1]  \\
+Examination:        & \bf Computer Science Tripos -- Part II, 2019  \\
+Word Count:         & \bf 12986\footnotemark[1]  \\
+Final Line Count:   & \bf 3411\\
 Project Originator: & Prof P.~Li\'o                   \\
 Supervisors:         & Prof P.~Li\'o \& Helena Andres Terre                   \\ 
 \end{tabular}
 }
-\footnotetext[1]{This word count was computed
-by \texttt{detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}
-}
+\footnotetext[1]{This word count was computed using TeXcount web service (https://app.uio.no/ifi/texcount/online.php)}
 \stepcounter{footnote}
 
 \section*{Original Aims of the Project}
 
+The original aim of this project was to use a combination of unsupervised and supervised learning 
+to train a model to predict the phenotype of an cell or group of cells using the genomic data.
+The aim was then to build a simple command line tool that would train a model for the user without requiring them 
+to know anything about machine learning.
+
 \section*{Work Completed}
+
+The project has compared semi-supervised learning methods, which combine supervised and unsupervised learning,
+to find which performed best on a gene expression dataset. Using the information discovered during this comparison
+a simple command line tool was constructed that can be used to perform semi-supervised learning on genomic data.
 
 All that has been completed appears in this dissertation.
 
@@ -105,22 +135,6 @@ All that has been completed appears in this dissertation.
 
 Learning how to incorporate encapulated postscript into a \LaTeX\
 document on both Ubuntu Linux and OS X.
- 
-\newpage
-\section*{Declaration}
-
-I, [Name] of [College], being a candidate for Part II of the Computer
-Science Tripos [or the Diploma in Computer Science], hereby declare
-that this dissertation and the work described in it are my own work,
-unaided except as may be specified below, and that the dissertation
-does not contain material that has already been used to any substantial
-extent for a comparable purpose.
-
-\bigskip
-\leftline{Signed [signature]}
-
-\medskip
-\leftline{Date [date]}
 
 \tableofcontents
 

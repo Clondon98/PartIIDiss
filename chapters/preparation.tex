@@ -45,7 +45,7 @@ output value $y$ for the neuron. This value is then used as an input to the next
 the output layer.
 \begin{figure}[H]
   \begin{center}
-      \scalebox{.75}{\input{figs/nn.tex}}
+      \scalebox{.65}{\input{figs/nn.tex}}
       \caption{Illustration of a 4-layer multilayer perceptron}
       \label{fig:illustration_deep_network}
   \end{center}
@@ -185,13 +185,12 @@ random noise, suggesting that there is a lot of redundancy in the MNIST features
   \centering
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \includegraphics[scale=.5]{figs/rand_noise.pdf}
+    \includegraphics[scale=.25]{figs/rand_noise.pdf}
     \caption{Pixel values selected randomly}
   \end{subfigure}
-  \hspace{0.1\textwidth}
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \includegraphics[scale=.5]{figs/digit.pdf}
+    \includegraphics[scale=.25]{figs/digit.pdf}
     \caption{MNIST digit}
   \end{subfigure}
   \caption{Demonstrating redundancy of features in MNIST dataset}
@@ -389,7 +388,7 @@ $p(\vec{x}|y, \vec{z})$ using a neural network $p_{\vec{\phi}}(\vec{x}|y, \vec{z
     \caption{The inference model}
   \end{subfigure}
   \caption[Semi-supervised VAE]{The semi-supervised VAE \\ (shading indicates that a variable in the dataset is observed)}
-  \label{fig:digit}
+  \label{fig:ss_vae}
 \end{figure}
 
 In the semi-supervised model there are two inference cases. When the data is labelled the question is of how to infer $\vec{z}$ from $\vec{x}$ and $y$.
