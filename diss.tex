@@ -1,5 +1,5 @@
 % Template for a Computer Science Tripos Part II project dissertation
-\documentclass[12pt,a4paper,twoside,openright]{report}
+\documentclass[12pt,a4paper,twoside,openany]{report}
 \usepackage[backend=biber]{biblatex}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
@@ -134,19 +134,19 @@ extent for a comparable purpose.
 
 \pagestyle{headings}
 
-\input{introduction}
+\input{chapters/introduction}
 
-\input{preparation}
+\input{chapters/preparation}
 
-\input{implementation}
+\input{chapters/implementation}
 
-\input{evaluation}
+\input{chapters/evaluation}
 
-\input{conclusion}
+\input{chapters/conclusion}
 
 \addcontentsline{toc}{chapter}{Bibliography}
 \printbibliography
 
-\input{appendix}
+\input{chapters/appendix}
 
 \end{document}

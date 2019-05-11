@@ -1,18 +1,23 @@
 \chapter{Preparation}
 
+\textit{A major part of this project involved reading and understanding the theory behind the models before implementing them. This theory
+is described here and so there is overlap with the Implementation chapter, which contains more concrete details on model implementations. 
+This chapter also contains information about the success 
+criteria and resources used in the project.}
+
 \section{Neural networks}
 
-This project involves using \textbf{autoencoders} as a basis for semi-supervised learning and classification of gene expression data. 
-Autoencoder architectures are all based on \textbf{deep feedforward networks} so it is important to have a good understanding of the basic principles
+This project involves using \textbf{autoencoders} as a basis for semi-supervised learning. 
+Autoencoder architectures are all based on \textbf{neural networks} so it is important to have a good understanding of the basic principles
 of these networks.
 
 \subsection{The perceptron}
 
-The perceptron (also known as the \textbf{artificial neuron}~\cite{WhatareA61:online}) is the basic element of the neural network. It takes in inputs $(x_1, ..., x_n)$ and 
+The perceptron (or \textbf{artificial neuron}~\cite{WhatareA61:online}) is the basic element of the neural network. It takes in inputs $(x_1, ..., x_n)$ and 
 multiplies these by \textbf{weights} $(w_1, ..., w_n)$, giving a linear combination of the inputs $x_1w_1 + ... + x_nw_n$, before applying 
 an \textbf{activation function} $\sigma$~\cite{Art_Int}.
 
-It can be helpful to think of the inputs and weights as 
+It is helpful to think of the inputs and weights as 
 vectors $\vec{x}$ and $\vec{w}$, giving the combination as $\vec{x} \cdot \ \vec{w}$. A \textbf{bias} term $x_0=1$ may also be included and multiplied by 
 weight $w_0$, giving $\vec{x} = [1, x_1, ..., x_n]$ and $\vec{w} = [w_0, w_1, ..., w_n]$. Intuitively the bias can be thought of as the intercept
 on a graph - if the neuron should have an output when all the inputs are zero it will be unable to model this correctly without a bias.
@@ -23,21 +28,13 @@ The function computed by the neuron is then:
 \end{equation}
 
 The activation function applied will depend on what the neuron is being used for.
-The main activation functions used in this project are:
-\begin{itemize}
-  \item \textbf{Linear}
-        \begin{equation}
-          \sigma(z) = z
-        \end{equation}
-        Used in regression problems, when a real-valued output that can take any value is required.
-  \item \textbf{ReLU}
-        \begin{equation}
-          \sigma(z) = max(0, z)
-          \label{eq:relu}
-        \end{equation}
-        Used in the hidden layers of deep feedforward networks (described in the next section) to provide non-linearity, allowing the network to learn more 
-        complicated functions. Has seen massive uptake due to performance benefits over sigmoid~\cite{relu}.
-\end{itemize}
+The main activation functions used in this project is ReLU, which has the form:
+\begin{align}
+  \sigma(z) = max(0, z)
+  \label{eq:relu}
+\end{align}
+It is sed in the hidden layers of multilayer perceptrons to provide non-linearity, allowing the network to learn more 
+complicated functions. It has seen massive uptake due to performance benefits over the previously popular sigmoid function~\cite{relu}.
 
 \subsection{Multilayer perceptrons}
 
@@ -48,74 +45,19 @@ output value $y$ for the neuron. This value is then used as an input to the next
 the output layer.
 \begin{figure}[H]
   \begin{center}
-      \begin{tikzpicture}
-        \tikzstyle{place}=[circle, draw=black, minimum size = 4mm]
-        
-        % Input
-        \draw node [dashed] at (0, 0) [place] (first_0) {$1$};
-        \foreach \x in {1,...,3}
-          \draw node at (0, -\x*1.2 - 0.6) [place] (first_\x) {$x_\x$};
-        \foreach \x in {1,...,3}
-          \draw [->] (-1.5, -\x*1.2 - 0.6) to (first_\x); 
-        
-        % Hidden 1
-        \draw node [dashed] at (4, 0) [place] (second_0) {$1$};
-        \foreach \x in {1,...,4}
-          \node at (4, -\x*1.2) [place] (second_\x) {$h^{1}_\x$};
-
-        % Hidden 2
-        \draw node [dashed] at (8, 0) [place] (third_0) {$1$};
-        \foreach \x in {1,...,4}
-          \node at (8, -\x*1.2) [place] (third_\x) {$h^{2}_\x$};
-        
-        % Output
-        \foreach \x in {1,...,3}
-          \node at (12, -\x*1.2 - 0.6) [place] (fourth_\x) {$y_\x$};
-        \foreach \x in {1,...,3}
-          \draw [->] (fourth_\x) to (13.5, -\x*1.2 - 0.6); 
-
-        \draw [decorate,decoration={brace,amplitude=5pt,raise=-2ex}]
-          (0,1) -- (8,1) node[above,midway]{Bias};
-          
-        % Input -> Hidden 1
-        \foreach \i in {1,...,4}
-          \draw [->,dashed] (first_0) to (second_\i);
-        \foreach \i in {1,...,3}
-          \foreach \j in {1,...,4}
-            \draw [->] (first_\i) to (second_\j);
-        
-        % Input -> Hidden 2
-        \foreach \i in {1,...,4}
-          \draw [->,dashed] (second_0) to (third_\i);
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,4}
-            \draw [->] (second_\i) to (third_\j);
-        
-        % Hidden -> Output
-        \foreach \i in {1,...,3}
-          \draw [->,dashed] (third_0) to (fourth_\i);
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,3}
-            \draw [->] (third_\i) to (fourth_\j);
-        
-        % Text
-        \node at (0, -6) [black, ] {Input Layer};
-        \node at (4, -6) [black, ] {Hidden Layer 1};
-        \node at (8, -6) [black, ] {Hidden Layer 2};
-        \node at (12, -6) [black, ] {Output Layer};
-      \end{tikzpicture}
+      \scalebox{.75}{\input{figs/nn.tex}}
       \caption{Illustration of a 4-layer multilayer perceptron}
       \label{fig:illustration_deep_network}
   \end{center}
 \end{figure}
  
 The main reason for neural networks with multiple layers is that they can model much more \textbf{complex non-linear relationships}
-~\cite{Goodfellow-et-al-2016}. than single 
+~\cite{Goodfellow-et-al-2016} than single 
 neurons and single layer models are able to. Using non-linear activation functions such as ReLU \eqref{eq:relu} allow neurons to model simple 
 non-linear functions, and combining these into layers allows them to model these more complex non-linear relationships.
 
-I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the trainable parameters of the neural
-network.
+I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the trainable parameters 
+(weights) of the neural network.
 
 \subsection{Neural networks for classification}
 
@@ -125,17 +67,28 @@ and the label is the target. A label cannot be directly utilised by the a neural
 necessary to transform the data into a numerical representation.
 
 \textbf{One-hot encoding} assigns an integer $i$ to each class and makes a vector of length $n$ (where $n$ is the 
-number of classes), setting the $ith$ element to one and all other elements to zero. For example, with three classes, red, green, and blue
-the one hot labels would be $[1, 0, 0]$ , $[0, 1, 0]$ and $[0, 0, 1]$. The network then has an output node corresponding to each class.
-This provides no implicit ordering over the classes (a problem found in integer coding) as each output node is equally important to the 
-network \cite{WhyOneHo55:online}.
+number of classes), setting the $ith$ element to one and all other elements to zero. E.g., with three classes
+the one hot labels would be $[1, 0, 0]$ , $[0, 1, 0]$ and $[0, 0, 1]$. The network then has an output node corresponding to each class 
+\cite{WhyOneHo55:online}.
 
-The \textbf{loss} of the network is the difference between the output of the network and the correct label. Concrete details are given 
-in the implementation, but loss should be high when the network is performing poorly, and low when it is performing well.
+The \textbf{softmax} function is then applied to the output of the network to give a probability distribution over the classes. It has the 
+form below for each output node $i$, and ensures that the sum of all the output values is one.
+\begin{align}
+  \sigma(z)_{i} = \frac{e^{i}}{\sum_{k} e^{k}}
+\end{align}
+A single label can be returned by taking the index of the maximum value in the ouput and correlating that to the label index. 
+
+The \textbf{loss} of the network is the difference between the output of the network and the correct label. The loss should be high 
+when the network is performing poorly, and low when it is performing well. For classification the loss function used is the cross 
+entropy loss, computed as:
+\begin{align}
+  J(\vec{\theta}) = - \vec{y} \cdot \log{f_{\vec{\theta}}(\vec{x})} \label{eq:ce}
+\end{align}
+This is high when the probability of the correct label is low, because $\lim_{x \to 0} -\log{x} = \infty$.
 
 \subsection{Training the network}
 
-Neural networks usually have their weights initialised to small random values. This means that on the first pass
+Neural networks are randomly initialised and this means that on the first pass
 the output of the network will likely be very far from the correct value. Training a neural network involves adjusting its
 trainable parameters ($\vec{\theta}$) until the network reaches an acceptable loss or accuracy. This is done by computing 
 the gradients of the trainable parameters with respect to the loss, and updating the parameters to move the loss towards 
@@ -168,15 +121,39 @@ too high the weights can ``jump" over minima, and even diverge out of a minima, 
 or get stuck in a less desirable local minima. The step size is also proportional to the magnitude of the gradient, allowing the optimizer to 
 take a larger step towards a minima if the gradient is steeper.
 
-\subsubsection{Batch learning} \ref{batch}
+\subsubsection{Batch learning} \label{batch}
 
-A neural network is generally run over multiple samples for each iteration, but not all the samples in the dataset. This is called 
+A neural network is generally run over a fixed number of samples for each iteration. This is called 
 mini-batch gradient descent and it is the most popular because it has stability advantages over stochastic gradient descent (one sample at a time)
 and computational advantages over batch (the entire dataset every iteration). 
 Stochastic gradient descent has more noise as each update is based on an individual example, causing the weights to jump around more. It also doesn't take advantage of the 
-parallelisation possiblity of much hardware - it's much more efficient to send multiple samples through at once. Batch has the problem of storing the whole 
+parallelisation possiblity of GPUs - it's much more efficient to send multiple samples through at once. Batch has the problem of storing the whole 
 dataset in memory, and only making one update per pass through the dataset can mean the model takes longer to converge to the best parameters. Mini-batch manages to
 have less noise than stochastic due to averaging over multiple samples, while also taking advantage of parallelisation and not requiring huge amounts of memory.
+
+\subsubsection{Summary}
+
+One complete pass through the dataset 
+is called an \textbf{epoch} and 
+training involves running forward and backpropagation for a certain number of epochs to minimise the loss
+on the training set and cause the model to converge to a good approximation to the real function. The pseudocode for training the network 
+is shown below.
+\begin{algorithm}
+  \begin{algorithmic}[1]
+    \Procedure{Training}{$i$, $\mathcal{D}$, $\eta$, \texttt{model}, \texttt{loss\char`_function}}
+    \For{$i$ epochs}
+    \For{mini-batch $\mathcal{M}$ in $\mathcal{D}$}
+    \State \texttt{data, labels} = $\mathcal{M}$
+    \State \texttt{out} = \texttt{model(data)}
+    \State $\mathcal{J}$ = \texttt{loss\char`_function(out, labels)}
+    \State \texttt{model}.$\vec{\theta}$ = \texttt{model}.$\vec{\theta}$ - $\eta \nabla_{\vec{\theta}} \mathcal{J}$ 
+    \EndFor
+    \EndFor
+    \EndProcedure
+  \end{algorithmic}
+  \caption{Train neural network via mini-batch gradient descent} 
+  \label{alg:train}
+\end{algorithm}
 
 \section{The manifold hypothesis}
 
@@ -188,47 +165,50 @@ number of pixels specifying each image.
 lower dimensional manifold embedded in this higher dimensional space.
 
 The precise definition of an n-dimensional manifold is ``a 
-topological space that is locally Euclidean", i.e. there is a neighbourhood around each point on the manifold that can be describe as n-dimensional 
+topological space that is locally Euclidea'', i.e. there is a neighbourhood around each point on the manifold that can be describe as n-dimensional 
 Euclidean space. However, it is much easier to think about with an intuitive example - imagine that all the datapoints in a 
 dataset lie on piece of paper, and so can be described with two features, an $x$ and $y$ axis. If the paper is taken and scrunched up and 
 twisted it now has a three dimensional shape, but the data still lies on a two-dimensional manifold and, by unscrunching the paper, can still 
 be described with only two features.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=8cm]{figs/manifold.png}
+  \includegraphics[scale=.5]{figs/manifold.png}
   \caption{Points on a 2-dimensional manifold embedded in 3-dimensional space}
   \label{fig:manifold}
 \end{figure}
 
-Therefore, what the manifold hypothesis is suggesting is that many features in high dimensional data are actually redundant,
-and the data can be described using fewer features. Again this can be seen intuitively by the fact that the set of 784 pixel images 
-that look like a recognisable digit is a very small subset of the set of 784 pixel images - if the pixel values were selected randomly from 
-between 0 and 255 the picture would look like random noise, leading to the conclusion that there is a lot of redundancy in the MNIST features.
+The manifold hypothesis suggests that many features in high dimensional data are actually redundant,
+i.e. it can be described using fewer features. Again this can be seen intuitively by the fact that the set of 784 pixel images 
+that look like a recognisable digit is a very small subset of the set of 784 pixel images - randomly selected pixel values look like 
+random noise, suggesting that there is a lot of redundancy in the MNIST features.
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.4\linewidth}
-    \includegraphics[width=\linewidth,scale=1]{figs/rand_noise.png}
+    \centering
+    \includegraphics[scale=4]{figs/rand_noise.png}
     \caption{Pixel values selected randomly}
   \end{subfigure}
+  \hspace{0.1\textwidth}
   \begin{subfigure}[b]{0.4\linewidth}
-    \includegraphics[width=\linewidth,scale=1]{figs/digit.png}
+    \centering
+    \includegraphics[scale=4]{figs/digit.png}
     \caption{MNIST digit}
   \end{subfigure}
   \caption{Demonstrating redundancy of features in MNIST dataset}
   \label{fig:digit}
 \end{figure}
 
-The manifold hypothesis then leads to \textbf{non-linear dimensionality reduction} techniques. By finding this lower dimensional
+This leads to \textbf{non-linear dimensionality reduction} techniques. By finding this lower dimensional
 mainfold the data can be explained with fewer features and possibly be more easily separated and classified. Going back to the paper example,
 linear dimensionality reduction techniques (e.g. principal component analysis) would be able to find the 2D embedding if the paper were 
-rotated, translated or stretched, but would be unable to unscrunch the paper, as that amounts to a non-liner embedding. Autoencoders are 
+rotated, translated or stretched, but would be unable to unscrunch the paper, as that amounts to a non-linear embedding. Autoencoders are 
 used for non-linear dimensionality reduction, and are described in the next section.
 
 \section{Autoencoders}
 
 Autoencoders use neural networks in an unsupervised way to try and learn new \textbf{latent} representations of the data, typically with reduced 
 dimensionality (i.e. there are fewer features in the latent data than in the input data). The use of neural networks allow it to learn a 
-non-linear mapping from the data to the latent representation, the advantages of which were explained in the previous section.
+non-linear mapping from the data to the latent representation.
 
 Autoencoders are made up of two parts, the encoder and the decoder. The encoder takes in the original data, $\vec{x}$, 
 and outputs a latent representation, $\vec{z} = f_{\vec{\theta}}(\vec{x})$. The decoder then takes in this latent representation and 
@@ -236,61 +216,7 @@ attempts to reconstruct $\vec{x}$, outputting $\vec{\hat{x}} = h_{\vec{\phi}}(\v
 into a supervised problem, using $\vec{x}$ as the target.
 \begin{figure}[H]
   \begin{center}
-      \begin{tikzpicture}
-        \tikzstyle{place}=[circle, draw=black, minimum size = 8mm]
-        
-        % Input
-        \foreach \x in {1,...,6}
-          \draw node at (0, -\x*1.2) [place] (first_\x) {$x_\x$};
-        
-        % Hidden 1
-        \foreach \x in {1,...,4}
-          \node at (3, -1.2 -\x*1.2) [place] (second_\x){};
-
-        % Latent
-        \foreach \x in {1,...,3}
-          \node at (6, -1.8 -\x*1.2) [place] (third_\x){$z_\x$};
-
-        % Hidden 2
-        \foreach \x in {1,...,4}
-          \node at (9, -1.2 -\x*1.2) [place] (fourth_\x){};
-        
-        % Output
-        \foreach \x in {1,...,6}
-          \draw node at (12, -\x*1.2) [place] (fifth_\x) {$x_\x$};
-          
-        \foreach \i in {1,...,6}
-          \draw [->] (-1.5, -\i*1.2) to (first_\i);
-
-        \foreach \i in {1,...,6}
-          \foreach \j in {1,...,4}
-            \draw [->] (first_\i) to (second_\j);
-
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,3}
-              \draw [->] (second_\i) to (third_\j);
-
-        \foreach \i in {1,...,3}
-          \foreach \j in {1,...,4}
-            \draw [->] (third_\i) to (fourth_\j);
-        
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,6}
-              \draw [->] (fourth_\i) to (fifth_\j);
-
-        \foreach \i in {1,...,6}
-          \draw [->] (fifth_\i) to (13.5, -\i*1.2);
-
-        \draw [decorate,decoration={brace,amplitude=5pt,raise=-2ex}]
-          (0,0) -- (6,0) node[above,midway]{Encoder};
-        \draw [decorate,decoration={brace,amplitude=5pt,raise=-2ex}]
-          (6,0) -- (12,0) node[above,midway]{Decoder};
-        
-        % Text
-        \node at (0, -8.2) [black, ] {Input Layer};
-        \node at (6, -8.2) [black, ] {Latent Layer};
-        \node at (12, -8.2) [black, ] {Output Layer};
-      \end{tikzpicture}
+      \scalebox{.6}{\input{figs/autoencoder.tex}}
       \caption{Illustration of a simple autoencoder}
       \label{fig:illustration_autoencoder}
   \end{center}
@@ -298,13 +224,16 @@ into a supervised problem, using $\vec{x}$ as the target.
 
 \subsection{Simple autoencoders}
 
-Simple autoencoders, as in the figure above, constrain the network by making the number of latent features smaller than the number of input
+Simple autoencoders constrain the network by making the number of latent features smaller than the number of input
 features. This prevents the network from simply learning the identity function, and hopefully results in an informative latent space.
 
 \subsubsection{Training}
-Autoencoders can be trained end to end using backpropagation as explained in section \ref{backprop}. In order to do this they need a loss
-function, and the simplest and most widely used is MSE loss \eqref{eq:mse}. The target $x$ and output $\hat{x}$ are both vectors and so 
-the Euclidean distance is used as the loss per datapoint. Both the encoder weights $\theta$ and decoder weights $\phi$ are trained at the 
+Autoencoders can be trained end to end using backpropagation as explained in section \ref{backprop}. The target $\vec{x}$ and output 
+$\vec{\hat{x}}$ are both vectors and so 
+the squared \textbf{Euclidean distance}\footnote{also known as mean square error} is used as the loss per datapoint. Both the encoder weights 
+$\vec{\theta}$ and 
+decoder weights $\vec{\phi}$ 
+are trained at the 
 same time; the gradients are backpropagated through the decoder to the latent layer and then back through the encoder every iteration. 
 
 \subsection{Denoising autoencoders}
@@ -315,8 +244,9 @@ $\vec{x}$. The aim is to force the autoencoder to learn a better set of features
 has to remove the noise. They can be trained in the same way as a simple autoencoder.
 
 Denoising autoencoders were used extensively to pre-train deep neural networks in the early 2010s, but this has become less popular with the 
-introduction of new \textbf{non-saturating} activation functions such as ReLU which have helped deal with the vanishing gradient problem
-[Appendix ??].
+introduction of new \textbf{non-saturating} activation functions such as ReLU which have helped deal with the vanishing gradient problem.
+\footnote{when sigmoid was used as the activation function the gradient in each layer would usually be less than one, and so the multiplication 
+of these gradients in backpropagation would lead to very small gradients in the lower layers}
 
 \subsection{Variational autoencoders} \label{vae}
 
@@ -325,149 +255,81 @@ the parameters of a probability distribution over the latent variables, rather t
 introduced by Kingma and Welling in 2013 and have become one of the most popular unsupervised learning techniques.
 \begin{figure}[H]
   \begin{center}
-      \begin{tikzpicture}
-        \tikzstyle{place}=[circle, draw=black, minimum size = 8mm]
-        
-        % Input
-        \foreach \x in {1,...,6}
-          \draw node at (0, -\x*1.2) [place] (first_\x) {$x_\x$};
-        
-        % Hidden 1
-        \foreach \x in {1,...,4}
-          \node at (2, -1.2 -\x*1.2) [place] (second_\x){};
-
-        % Mu
-        \foreach \x in {1,...,2}
-          \node at (4, -0.8 -\x*1.2) [place] (mu_\x){$\mu_\x$};
-
-        \foreach \x in {1,...,2}
-          \node at (4, -4 -\x*1.2) [place] (logvar_\x){$\sigma_\x$};
-
-        \foreach \x in {1,...,2}
-          \draw node at (6, -2.4 -\x*1.2) [place] (sample_\x){$z_\x$};
-
-        % Hidden 2
-        \foreach \x in {1,...,4}
-          \node at (8, -1.2 -\x*1.2) [place] (fourth_\x){};
-        
-        % Output
-        \foreach \x in {1,...,6}
-          \draw node at (10, -\x*1.2) [place] (fifth_\x) {$x_\x$};
-          
-        \foreach \i in {1,...,6}
-          \draw [->] (-1.5, -\i*1.2) to (first_\i);
-
-        \foreach \i in {1,...,6}
-          \foreach \j in {1,...,4}
-            \draw [->] (first_\i) to (second_\j);
-
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,2}
-              \draw [->] (second_\i) to (mu_\j);
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,2}
-            \draw [->] (second_\i) to (logvar_\j);
-
-        \foreach \i in {1,...,2}
-          \draw [->] (logvar_\i) to (sample_\i);
-        
-        \foreach \i in {1,...,2}
-          \draw [->] (mu_\i) to (sample_\i);
-
-        \foreach \i in {1,...,2}
-          \foreach \j in {1,...,4}
-            \draw [->] (sample_\i) to (fourth_\j);
-        
-        \foreach \i in {1,...,4}
-          \foreach \j in {1,...,6}
-            \draw [->] (fourth_\i) to (fifth_\j);
-
-        \foreach \i in {1,...,6}
-          \draw [->] (fifth_\i) to (11.5, -\i*1.2);
-
-        \draw [decorate,decoration={brace,amplitude=5pt,raise=-2ex}]
-          (0,0) -- (4,0) node[above,midway]{Encoder $q_\theta(z|x)$};
-        \draw [decorate,decoration={brace,amplitude=5pt,raise=-2ex}]
-          (6,0) -- (10,0) node[above,midway]{Decoder $p_\phi(x|z)$};
-        
-        % Text
-        \node at (0, -8.2) [black, ] {Input Layer};
-        \node at (4, -7.8) [black, align=left] {Latent \\ Distribution\\ Parameters};
-        \node at (6, -6) [black, ] {Sample};
-        \node at (10, -8.2) [black, ] {Output Layer};
-      \end{tikzpicture}
+      \scalebox{.75}{\input{figs/vae.tex}}
       \caption{Illustration of a Gaussian variational autoencoder}
       \label{fig:gauss_vae}
   \end{center}
 \end{figure}
 
-The central idea of variational autoencoders is that the data $x$ has been generated from some lower dimensional latent
-representation $z$. Each datapoint $x_{i}$ is generated by:
+The central idea of variational autoencoders is that the data $\vec{x}$ has been generated from some lower dimensional latent
+representation $\vec{z}$. The latent distribution describes the variation in the data, and so these are referred to as 
+\textbf{latent variable models}. Each datapoint $\vec{x_{i}}$ is generated by:
 \begin{itemize}
-  \item sampling $z_{i}$ from the prior distribution over $z$: $z_{i} \sim p(z)$, 
-  \item sampling $x_{i}$ from the conditional distribution $p(x|z)$ (known as the likelihood): \\ $x_{i} \sim p(x|z=z_{i})$
+  \item sampling $\vec{z_{i}}$ from the prior distribution over $\vec{z}$: $\vec{z_{i}} \sim p(\vec{z})$, 
+  \item sampling $\vec{x_{i}}$ from the conditional distribution $p(\vec{x}|\vec{z})$ (known as the likelihood): \\ 
+  $\vec{x_{i}} \sim p(\vec{x}|\vec{z}=\vec{z_{i}})$
 \end{itemize}
 
-The prior $p(z)$ can be thought of as constraining the possible space of latent variables. For example, in the MNIST dataset a 
-normal autoencoder could place 3s written in different styles in different areas of n-dimensional Euclidean space (where n is the 
+The prior $p(\vec{z})$ can be thought of as constraining the possible space of latent variables. In an unconstrained latent space a
+normal autoencoder could place the same character written in different styles in different areas of n-dimensional Euclidean space (where n is the 
 dimensionality of $z$) as the latent representation is a vector of unconstrained real numbers. This is detrimental to learning a meaningful 
-latent space, and by constraining this space with a prior it should force the model to keep the representations of similar datapoints close.
+latent space, and by constraining this space with a prior it should force the model to keep the representations of similar datapoints close
+~\cite{Tutorial70:online}.
 
-The decoder of the VAE is a neural network that models the likelihood, $p_\phi(x|z)$. Once the VAE is trained new samples similar to 
-those in the training set can be generated by sampling from the prior and passing this into the decoder; this is why VAE's are often
+The decoder of the VAE is a neural network that models the likelihood, $p_{\vec{\phi}}(\vec{x}|\vec{z})$. Once the VAE is trained new samples similar to 
+those in the training set can be generated by sampling from the prior and passing this into the decoder; this is why VAEs are often
 referred to as generative models.
 
-In most situations where unsupervised learning is useful only $x$ is known. The goal is then to infer $z$.
+In most situations where unsupervised learning is useful only $\vec{x}$ is known. The goal is then to infer $\vec{z}$.
 Inference in the model refers to finding good values of the latent variables given the data. This can be done by computing the
-posterior, $p(z|x)$. Using Bayes rule we have:
+posterior, $p(\vec{z}|\vec{x})$. Using Bayes rule we have:
 \begin{equation}
   p(z|x) = \frac{p(x|z)p(z)}{p(x)}
 \end{equation}
 
-The denominator $p(x)$ is known as the evidence and calculating it is intractable as it has to be computed by marginalizing out $z$:
+The denominator $p(\vec{x})$ is known as the evidence and calculating it is intractable as it has to be computed by marginalizing out $\vec{z}$:
 \begin{equation}
   p(x) = \int p(x|z)p(z) dz
 \end{equation}
 
 Computing this integral requires exponential time as it has to be computed over all the possible configurations of
-the latent variables. Therefore the posterior is approximated with another simpler distribution $q(z|x)$ defined so that it is 
-tractable. The most popular distribution, and the one used in this project, is the Gaussian.
-This can then be modelled by a neural network $q_\theta(z|x)$. This is the encoder.
+the latent variables. Therefore the posterior is approximated using a neural network $q_{\vec{\theta}}(\vec{z}|\vec{x})$. 
+This is the encoder, and it learns to approximate the posterior by maximising the evidence.
 
 \subsubsection{Training}
 
 The loss function used for a variational autoencoder can be derived by maximizing the probability of the evidence.
-This makes sense intuitively, as a good model should maximise the probability of the real data ~\cite{SVIPartI90:online}.
+This makes sense intuitively, as a good model should maximise the probability of the real data~\cite{SVIPartI90:online}. A full derivation
+of this loss can be found in Appendix~\ref{vae_loss}.
 \begingroup
 \allowdisplaybreaks
-\begin{align*}
-  \log p(x) & = \log \int p(x|z)p(z) dz &\text{Law of total probability}\\
-  & = \log \int p(x|z)p(z) \frac{q(z|x)}{q(z|x)} dz\\
-  & = \log\left(\mathbb{E}_q \left[\frac{p(x|z)p(z)}{q(z|x)}\right]\right) \\
-  & \geq \mathbb{E}_q \left[\log\frac{p(x|z)p(z)}{q(z|x)}\right] &\text{Jensen's inequality}\\
-  & = \mathbb{E}_q \left[\log p(x|z) + \log\frac{p(z)}{q(z|x)}\right] \\
-  & = \mathbb{E}_q [\log p(x|z)] - D_{KL}(q(z|x)||p(z))
-\end{align*}
+\begin{align}
+  \log p(x) = \mathbb{E}_q [\log p(x|z)] - D_{KL}(q(z|x)||p(z))
+\end{align}
 \endgroup
 
-The final line of this equation is the \textbf{evidence lower bound} (ELBO). Maximizing the ELBO maximizes the probability of the 
+This is the \textbf{evidence lower bound} (ELBO). Maximizing the ELBO maximizes the probability of the 
 evidence in the model, meaning the model fits the data as well as possible. The two terms in the ELBO correspond to the negative 
-reconstruction loss and the \textbf{Kullback-Leibler divergence} between the computed posterior and the prior distribution of the latent variables. 
-The KLD measures the difference between two probability distributions, and here measures the difference between the computed posterior and
-the real prior. This acts as a regularizing term, constraining the distribution of the latent variables to be close to the prior. Taking the 
+reconstruction loss (squared Euclidean distance) between the input and output, and the \textbf{Kullback-Leibler divergence} between 
+the computed posterior and the prior distribution of the latent variables. 
+The KLD measures the difference between two probability distributions, and this acts as a regularizing term, constraining the distribution 
+of the latent variables to be close to the prior. Taking the 
 negative of the ELBO gives the loss function for the variational autoencoder. Minimizing this loss function is equivalent to maximising the ELBO.
 
-\paragraph{The Gaussian VAE}is the most common and the one used in this project. The prior $p(z)$ is chosen to be the standard Gaussian, $\mathcal{N}(0, 1)$,
+\paragraph{The Gaussian VAE}is the most common and the one used in this project. The prior $p(\vec{z})$ is chosen to be the standard Gaussian, 
+$\mathcal{N}(0, 1)$,
 for every latent variable. The output from the encoder is a vector of means $\vec{\mu}$ and standard deviations $\vec{\sigma}$ of normal distributions. 
 During training, data is fed in mini-batches into the encoder and latent variables are then sampled from the encoder output: 
-$\vec{z_{i}} \sim \mathcal{N}(\vec{\mu}, \vec{\sigma}^{2})$. These are fed into the decoder which outputs a reconstruction $\vec{\hat{x}}$. The loss 
-for each datapoint is then computed as the MSE loss \eqref{eq:mse} between $\vec{\hat{x}}$ and $\vec{x}$ and the KLD between
+$\vec{z_{i}} \sim \mathcal{N}(\vec{\mu}, \vec{\sigma}^{2})$. These are fed into the decoder which outputs a reconstruction $\vec{\hat{x}}$. 
+The loss for each datapoint is then computed as the reconstruction loss between $\vec{\hat{x}}$ and $\vec{x}$ and the KLD between
 $\mathcal{N}(\vec{\mu}, \vec{\sigma}^{2})$ and $\mathcal{N}(0, 1)$.
 
-It is not possible to backpropagate the reconstruction loss through the drawing of the random sample and so \textbf{the reparameterization trick} is used. 
+Training is again done by backpropagation but
+it is not possible to backpropagate the reconstruction loss through the drawing of the random sample, and so 
+\textbf{the reparameterization trick} is used. 
 An explanation can be found in Appendix ~\ref{reparam}.
 
-\section{Semi-supervised learning}
+\section{Semi-supervised models}
 
 Semi-supervised learning involves leveraging large amounts of unlabelled data to increase model performance on supervised learning tasks. 
 In most fields unlabelled data is much easier to obtain than labelled data. As I mentioned in the Introduction, there is a wealth of gene 
@@ -479,26 +341,18 @@ can use it to improve performance.
 
 The simplest semi-supervised model in this project relies on the manifold hypothesis. It uses a variational autoencoder to construct a
 reduced dimnesionality feature representation of the data that should cluster similar samples together. The idea is that it should then be 
-easier to classify the datapoints, even with a limited amount of labelled data. The classifier used in this project is a neural network 
-with softmax outputs. This differs from the implementation used by Kingma and Welling which uses a transductive support vector machine, 
-and is done for simplicity of the project.
-
-The model has to be trained in two stages, with the autoencoder trained on the combined labelled and unlabelled data, and the classifier
-trained on the latent representation of the labelled data. Once training is complete data can be classified by first passing it through 
-the encoder and then through the classifier.
-
-While a latent representation should hopefully lead to easier classification, at least some information is usually lost during dimensionality
-reduction and so often other methods are preferable.
+easier to classify the datapoints in this latent dimension, even with a limited amount of labelled data.
 
 \subsection{Network pre-training} \label{sdae}
 
-\textbf{Stacked denoising autoencoders} are a way of pre-training deep networks one layer at a time. Each hidden layer in the network is 
-trained as part of a one layer denoising autoencoder, with the weights of the layer to be trained as the encoder and a new temporary layer
+\textbf{Stacked denoising autoencoders} are a way of pre-training deep networks one layer at a time, using unlabelled data. 
+Each hidden layer in the network is 
+trained as part of a one layer denoising autoencoder, with layer to be trained used as the encoder and a new temporary layer constructed
 as the decoder. The autoencoder takes the ouput from the previous layer in the network and uses this as the input, injecting noise before 
 passing it through the autoencoder and attempting to reconstruct the clean input. The reconstruction loss is then backpropagated throught 
 the autoencoder only (no other layers of the deep network) and the weights are updated. The loss computed by the autoencoder is referred to 
-as an unsupervised  "local denoising criterion"~\cite{Vincent:2010:SDA:1756006.1953039} as it does not require a label and is computed only 
-for one layer at a time rather than the whole network. This allows the large amount of unlabelled data to be leveraged in training each layer.
+as an unsupervised ``local denoising criterion''~\cite{Vincent:2010:SDA:1756006.1953039} as it does not require a label and is computed only 
+for one layer at a time rather than the whole network.
 
 The network is trained greedily, beginning with the first hidden layer. Once the reconstruction loss for the denoising autoencoder has 
 converged for the layer the decoder is discarded, and the next layer is trained in the same way, using the output of the previously trained
@@ -514,100 +368,64 @@ closer to the global minimum for the loss function~\cite{Erhan:2010:WUP:1756006.
 \subsection{The semi-supervised VAE} \label{ssVAE}
 
 The semi-supervised VAE is a model due to Kingma et al.~\cite{DBLP:journals/corr/KingmaRMW14} that extends the VAE to include label information. 
-The assumption used is that the data $\vec{x}$ is generated from both a discrete label $\vec{y}$ and a continuous latent representation 
+The assumption used is that the data $\vec{x}$ is generated from both a discrete label $y$ and a continuous latent representation 
 $\vec{z}$, which are marginally independent of each other.
-Therefore $\vec{y}$ encodes the class of the data, while $\vec{z}$ encodes everything else. In the MNIST dataset this means that $\vec{y}$ encodes
-what digit the character is, while $\vec{z}$ encodes the style. The generative model (the decoder) works by sampling $\vec{y}$ from a 
-categorical distribution $p(y)$ and by sampling $\vec{z}$ from a continuous distribution $p(z)$ (usually a Gaussian), before computing 
-$p(x|y, z)$ using a neural network $p_{\phi}(x|y, z)$.
+Therefore $y$ encodes the class of the data, while $\vec{z}$ encodes everything else. In the MNIST dataset this means that $y$ encodes
+what digit the character is, while $\vec{z}$ encodes the style. The generative model (the decoder) works by sampling $y$ from a 
+categorical distribution $p(y)$ and by sampling $\vec{z}$ from a continuous distribution $p(\vec{z})$ (usually a Gaussian), before computing 
+$p(\vec{x}|y, \vec{z})$ using a neural network $p_{\vec{\phi}}(\vec{x}|y, \vec{z})$.
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \begin{tikzpicture}
-      \draw node at (0, 0) [place] (z) {$\vec{z}$};
-      \draw node at (2, 0) [place] (y) {$\vec{y}$};
-      \draw node at (1, -2) [place] (x) {$\vec{x}$};
-
-      \begin{scope}[on background layer]
-        \fill[fill=gray!25] (x.0) arc [start angle=0, end angle=360, radius=4mm];
-        \fill[fill=gray!25] (y.270) arc [start angle=270, end angle=450, radius=4mm];
-      \end{scope}
-
-      \draw [->] (z) to (x);
-      \draw [->] (y) to (x);
-    \end{tikzpicture}
+    \scalebox{.75}{\input{figs/generative.tex}}
     \caption{The generative model}
   \end{subfigure}
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \begin{tikzpicture}
-      \draw node at (0, 0) [place] (z) {$\vec{z}$};
-      \draw node at (2, 0) [place] (y) {$\vec{y}$};
-      \draw node at (1, -2) [place] (x) {$\vec{x}$};
-
-      \begin{scope}[on background layer]
-        \fill[fill=gray!25] (x.0) arc [start angle=0, end angle=360, radius=4mm];
-        \fill[fill=gray!25] (y.270) arc [start angle=270, end angle=450, radius=4mm];
-      \end{scope}
-
-      \draw [->] (x) to (y);
-      \draw [->] (x) to (z);
-      \draw [->] (y) to (z);
-    \end{tikzpicture}
+    \scalebox{.75}{\input{figs/inference.tex}}
     \caption{The inference model}
   \end{subfigure}
-  \caption[Semi-supervised VAE]{The semi-supervised VAE \\ (shading indicates whether a variable is found in the dataset)}
+  \caption[Semi-supervised VAE]{The semi-supervised VAE \\ (shading indicates that a variable in the dataset is observed)}
   \label{fig:digit}
 \end{figure}
 
-In the semi-supervised model there are two inference cases. When the data is labelled the question is of how to infer $z$ from $x$ and $y$.
-Despite $x$ and $y$ being marginally independent, they are not necessarily conditionally independent, and so both are used as input to
-the encoder. Another reason for this is that it helps the encoder to learn to separate the representation of $y$ and $z$, so that $z$ contains
+In the semi-supervised model there are two inference cases. When the data is labelled the question is of how to infer $\vec{z}$ from $\vec{x}$ and $y$.
+Both $\vec{x}$ and $\vec{y}$ are used as input to both the encoder, while $y$ and $\vec{z}$ are used as input to the decoder.
+This helps the encoder to learn to separate the representation of $y$ and $z$, so that $z$ contains
 no information about the label. The semi-supervised VAE in this project uses a Gaussian distribution as the tractable distribution for 
-$z$ (like the unsupervised VAE), and the encoder models $q(z|x, y)$ with a network $q_{\theta}(z|x, y)$. For labelled data the model should 
-maximise the evidence $p(x, y)$, the probability the model assigns to the real data. This leads to a variant of the ELBO by marginalizing
+$\vec{z}$ (like the unsupervised VAE), and the encoder models $q(\vec{z}|\vec{x}, y)$ with a network $q_{\theta}(\vec{z}|\vec{x}, y)$. For labelled data 
+the model should 
+maximise the evidence $p(\vec{x}, y)$, the probability the model assigns to the real data. This leads to a variant of the ELBO by marginalizing
 out $z$:
-\begingroup
-\allowdisplaybreaks
-\begin{align*}
-  \log p(x, y) & = \log \int p(x, y, z) dz \\
-  & = \log \int p(x|y, z)p(y)p(z) dz \qquad \text{Independence of $z$ and $y$}\\
-  & = \log \int p(x|y, z)p(y)p(z) \frac{q(z|x, y)}{q(z|x, y)} dz\\
-  & = \log\left(\mathbb{E}_q \left[\frac{p(x|y, z)p(y)p(z)}{q(z|x, y)}\right]\right) \\
-  & \geq \mathbb{E}_q \left[\log\frac{p(x|y, z)p(y)p(z)}{q(z|x, y)}\right] \\
-  & = \mathbb{E}_q \left[\log p(x|y, z) + \log p(y) + \log\frac{p(z)}{q(z|x, y)}\right] \\
-  & = \mathbb{E}_q [\log p(x|y, z) + \log p(y)] - D_{KL}(q(z|x, y)||p(z)) \\
+\begin{align}
+  \log p(x, y) & = \mathbb{E}_q [\log p(x|y, z) + \log p(y)] - D_{KL}(q(z|x, y)||p(z)) \\
   & = -\mathcal{L}(x, y)
-\end{align*}
-\endgroup
+\end{align}
 
-This is very similar to the ELBO for the normal VAE, except that there is now a prior over $y$. This encodes previous knowledge about the 
+The derivation is not included in the Kingma paper~\cite{DBLP:journals/corr/KingmaRMW14}, which includes only the line above and so I had 
+to derive it myself. The derivation can be found in Appendix~\ref{ssvae_loss}.
+
+It is very similar to the ELBO for the normal VAE, except that there is now a prior over $y$. This encodes previous knowledge about the 
 distribution of the classes $y$, penalizing the model more when the label is of a low probability class. This is unimportant for the labelled
 data as the previous knowledge is drawn from this data, but becomes important for the unlabelled data, and the connection between the two can be 
-seen in the derivation below. A good model maximises the ELBO and therefore minimises $\mathcal{L}(x, y)$, which is used as the loss function.
+seen in the unlabelled ELBO below. A good model maximises the ELBO and therefore minimises $\mathcal{L}(x, y)$, which is used as the loss function.
 
-When the data is unlabelled the problem is of inferring both $y$ and $z$ from $x$, $q(y, z|x)$. The evidence in the unlabelled case is $p(x)$,
-and the ELBO can be derived by marginalizing out both $y$ and $z$:
-\begingroup
-\allowdisplaybreaks
-\begin{align*}
-  \log p(x) & = \log \sum_{y} \int p(x, y, z) dz \\
-  & = \log \sum_{y} \int p(x, y, z) \frac{q(z, y|x)}{q(z, y|x)} dz\\
-  & = \log \sum_{y} \int p(x, y, z) \frac{q(z|x, y)q(y|x)}{q(z|x, y)q(y|x)} dz\\
-  & \geq \sum_{y} q(y|x) \int q(z|x, y) \log\frac{p(x, y, z)}{q(z|x, y)q(y|x)} dz \qquad \text{Jensen's inequality}\\
-  & = \sum_{y} q(y|x) \int q(z|x, y) \log\frac{p(x, y, z)}{q(z|x, y)} dz - \sum_{y} q(y|x) \log q(y|x) \int q(z|x, y) dz\\
-  & = \sum_{y} q(y|x)(-\mathcal{L}(x, y)) + \mathcal{H}(q(y|x)) \\
+When the data is unlabelled the problem is of inferring both $y$ and $\vec{z}$ from $\vec{x}$, $q(y, \vec{z}|\vec{x})$. The evidence in the unlabelled 
+case is $p(\vec{x})$,
+and the ELBO can be derived by marginalizing out both $y$ and $\vec{z}$:
+\begin{align}
+  \log p(x) & = \sum_{y} q(y|x)(-\mathcal{L}(x, y)) + \mathcal{H}(q(y|x)) \\
   & = -\mathcal{U}(x, y)
-\end{align*}
-\endgroup
+\end{align}
+This derivation is also in Appendix~\ref{ssvae_loss}.
 
 The marginalization of $y$ is done by summation because the labels are discrete. Looking at the penultimate line of the derivation there is
-the term $q(y|x)$. This is classification, inferring $y$ from $x$. This classifier is parameterised
-by a neural network, and outputs a categorical distribution over the labels using the softmax function \eqref{softmax}. The summation term 
+the term $q(y|x)$. This is classification, inferring $y$ from $\vec{x}$. This classifier is parameterised
+by a neural network, and outputs a categorical distribution over the labels. The summation term 
 this is part of is referred to as ``classification as inference'' by Kingma~\cite{DBLP:journals/corr/KingmaRMW14}. For each label the labelled loss with 
 respect to the data and that label is calculated and then multiplied by the probability of the label. This means that if a particular label
-leads to a bad reconstruction, implying that the label was incorrect, and the classifier assigns a high probability to that (likely incorrect) label, 
+leads to a bad reconstruction, implying that the label was incorrect, and the classifier assigns a high probability to that label, 
 the loss to the classifier will be very high, and minimizing this loss should lead to better classification. The prior over $y$ in $\mathcal{L}(x, y)$
 becomes important here as it discourages the classifier from assigning a high probability to an unlikely class too often. All of this means that 
 the classifier can learn directly from unlabelled data, with the small amount of labelled data providing a guide to good reconstructions.
@@ -617,8 +435,8 @@ along with its label, and the loss function $\mathcal{L}(x, y)$ is calculated an
 first put through the classifier, before it is fed into the encoder once with each label allowing $\mathcal{U}(x)$ to be computed and 
 backpropagated through the network.
 
-This means that at no point does the classifier learn directly from the labelled data, unnecessarily disadvantaging the model. To remedy
-this the labelled loss function is modified to include an extra term, the cross entropy loss \eqref{eq:ce} between the real label and the 
+Currently at no point does the classifier learn directly from the labelled data, unnecessarily disadvantaging the model. To remedy
+this the labelled loss function is modified to include an extra term, the cross entropy loss~\eqref{eq:ce} between the real label and the 
 label the classifier outputs for the data. This modified version is then:
 \begin{align}
   \mathcal{J}(x, y) = \mathcal{L}(x, y) - \alpha (y \cdot \log q(y|x))
@@ -635,8 +453,8 @@ the previous models did.
 The ladder network is the most recent of the models included in this project having first been described by Valpola in 2014
 ~\cite{DBLP:journals/corr/Valpola14}, and then expanded upon by Rasmus et al. in 2015~\cite{DBLP:journals/corr/RasmusVHBR15}. 
 It has some similarity to the SDAE, using an unsupervised local denoising criterion, but the structure of the model is very different.
-The model is made up of an encoder and decoder, like an auotencoder, but with lateral connections between the layers in the encoder 
-and decoder.
+The model is made up of an encoder and decoder, like an autoencoder, but with lateral connections between the layers in the encoder 
+and decoder. The final classifier is the encoder.
 
 \begin{figure}[H]
   \centering
@@ -646,34 +464,38 @@ and decoder.
 \end{figure}
 
 The ladder network is a hierarchical latent variable model. These differ from the latent variable models
-looked at so far (autoencoder, VAE) in that they attempt to represent the data using multiple layers of latent variables, rather than a 
+looked at so far in that they attempt to represent the data using multiple layers of latent variables, rather than a 
 single layer of latent variables. 
-In a normal autoencoder or VAE the single latent layer $z$ has to encode everything about the data $x$, otherwise the reconstruction it generates 
+In the normal autoencoder or VAE the single latent layer $z$ has to encode everything about the data $x$, otherwise the reconstruction it generates 
 will be very poor. With a hierarchical model each layer models only some information about $x$, with the higher layers able to be 
 more abstract, 
-as they don't have to model the lower level details encoded in the lower layers. For example, using MNIST, $z$ in a simple
+as they don't have to model the lower level details encoded in the lower layers. 
+
+For example, using MNIST, $z$ in a simple
 autoencoder cannot just be the digit label as this does not provide enough information to reconstruct the original image well. 
 In a hierarchical latent variable model the highest
 level latent variable is able to be very abstract and only encode the label, as the other layers in the model provide less abstract 
 information (e.g about style and location) that can lead to a good reconstruction.
+
 The reason this works in the ladder network is due to the lateral connections, which "leak" information from layers in the encoder to the decoder. 
 This means that each decoder layer
 receives information both from the previous decoder layer and the corresponding encoder layer. The encoder layer passes some information which
 the subsequent encoder layers then no longer have to model, as the decoder will receive it directly from the encoder layer.
 
 This structure with the representation becoming more abstract in higher level layers is also analagous to how supervised learning works, with the layers 
-further into the network modelling more complicated and abstract features with the final layer just outputting a class label (most abstract).
+further into the network modelling more complicated and abstract features with the final layer just outputting a class label.
 
-At the input to each decoder layer $u^{(l)}$ the corresponding encoder representation $z^{(l)}$ and the output of the previous decoder layer $u^{(l+1)}$ are combined together
+The way these lateral connections work is that
+at the input to each decoder layer $u^{(l)}$ the corresponding encoder representation $z^{(l)}$ and the output of the previous decoder layer $u^{(l+1)}$ are combined together
 using a combinator function $g$. $g$ has trainable parameters, but this leads to a problem where the lowest possible unsupervised loss can be 
 achieved by $g$ in the first layer learning to copy $z^{(0)}$ and completely ignoring the $u^{(l+1)}$, which corresponds to copying the input directly to the output at the bottom layer.
 This completely short circuits the autoencoder, and in order to prevent this, Gaussian noise (sampled from $\mathcal{N}(0, 1))$) is added to the input to each layer 
-in the encoder. Each encoder layer then has the representation $\tilde{z}^{(l)}$ and this noise means that just copying over the input no longer minimises the cost function. 
+in the encoder. Each encoder layer then has the representation $\tilde{z}^{(l)}$ and this noise means that just copying over the input no longer minimises the loss function. 
 
-However if the unsupervised cost function used is simply the reconstruction loss between the decoder output $\hat{x}$ and the encoder input $x$ the first layer of 
+However if the unsupervised loss function used is simply the reconstruction loss between the decoder output $\hat{x}$ and the encoder input $x$ the first layer of 
 the network still has a disproportionate
 influence on the loss. In order to remedy this Valpola proposes adding local denoising criterion. This involves adding a cost function at each layer of the decoder,
-namely the mean square error between $g(\tilde{z}^{(l)}, u^{(l+1)})$, which is $\hat{z}^{(l)}$, a denoised representation of $\tilde{z}^{(l)}$, and $z^{(l)}$, the clean 
+namely the reconstruction loss between $g(\tilde{z}^{(l)}, u^{(l+1)})$ (which is $\hat{z}^{(l)}$, a denoised representation of $\tilde{z}^{(l)}$) and $z^{(l)}$, the clean 
 representation from layer $l$ of the encoder. In order to generate both the clean and noisy encoder representations the encoder is run twice per training iteration,
 once without the added noise to generate $z^{(l)}$, and once with noise to generate $\tilde{z}^{(l)}$. These local cost functions require all the layers to learn in order
 to make a meaningful representation that can be denoised well. Each layer loss is multiplied by a hyperparameter $\lambda_{l}$ according to how important the denoising cost
@@ -683,10 +505,11 @@ of the layer is, before being summed together to give a final unsupervised cost 
   \mathcal{U}(x) = \sum_{l} |z^{(l)} - \hat{z}^{(l)}|^{2}
 \end{align}
 
-The model as explained so far allows the ladder network to learn abstract features in the higher layers. However, without supervised data and a supervised cost function the 
-features learned are unlikely to be useful for the classification task. The small amount of labelled data is used as a guide for this. The encoder of the model is the 
-original classifier so the data is passed through the encoder and cross entropy loss is computed between the output and the labels. During training noise is 
-added at the output of each layer, the same as one run of supervised learning, as the noise acts as a regularizer~\cite{NoiseInj}.
+The model as explained so far allows the ladder network to learn abstract features in the higher layers. However, without supervised data and a supervised loss function the 
+features learned are unlikely to be useful for the classification task. The small amount of labelled data is used as a guide for this. The classifier 
+is the encoder so the data is passed through the noisy encoder during training (the noise acts as a regularizer~\cite{NoiseInj}) and cross entropy 
+loss~\ref{eq:ce} is computed between the output and the labels. When the classifier is used for inference after being trained no noise is 
+added.
 
 An overview of the training process can be found in Section~\ref{ladder_imp}
 
@@ -702,22 +525,13 @@ project and ranked them by their priority. The success criteria are:
 \end{itemize}
 
 The first success criteria differs from the project proposal. After reading the papers of the models to be implemented (Section~\ref{reading}) I 
-realised that the most important models, the semi-supervised variational autoencoder and the ladder network, both had benchmarks given on 
+realised that the semi-supervised variational autoencoder and the ladder network both had benchmarks given on 
 the MNIST database of handwritten digits~\cite{lecun-mnisthandwrittendigit-2010}. As the stated aim of generating synthetic data was to
 ensure that the models were working correctly, I decided that a better measure of the correctness of the models was whether they
 achieved (close to) the accuracy reported in the papers.
 
-The models compared in this project in order to decide on the best semi-supervised method to use were:
-
-\begin{itemize}
-  \item \textbf{A variant of the Kingma M1 model}~\cite{DBLP:journals/corr/KingmaRMW14}. A variational autoencoder trained on combined 
-        labelled and unlabelled data followed by a neural network classifier trained on the latent representation of the labelled data.
-  \item \textbf{A stacked denoising autoencoder}~\cite{Vincent:2010:SDA:1756006.1953039}.
-  \item \textbf{A semi-supervised variational autoencoder}.~\cite{DBLP:journals/corr/KingmaRMW14} Also referred to as the Kingma M2 model.
-  \item \textbf{A ladder network}~\cite{DBLP:journals/corr/RasmusVHBR15}
-\end{itemize}
-
-With these models selected and the success criteria defined above the requirements can be constructed:
+The models compared in this project are those described in the previous section and so, with these models selected and the success criteria 
+defined above, the requirements can be constructed:
 
 \begin{table}[H]
   \label{tab:requirements}
@@ -756,7 +570,7 @@ a machine learning model. To this end I decided upon a list of essential reading
 
 All the models in this project were developed iteratively. They were first constructed in their most basic form, and tested on MNIST 
 data to determine whether they were working correctly. Enhancements such as early stopping and other hyperparameter optimisations were 
-added in stages, and the models were tested at each stage to ensure that the new code had not led to any problems.
+added in stages, and the models were tested on MNIST at each stage to ensure that the changes had not led to any problems.
 
 \section{Resources}
 
@@ -768,16 +582,16 @@ to intermediate variables for debugging. In Tensorflow all operations have to be
 user can see are those returned from the session object.
 
 I used the PyCharm IDE for writing my Python code as I was familiar with Jetbrains IDEs.
-PyCharm includes useful features like autocomplete, and has good integration with git.
+PyCharm includes useful features like autocomplete, and has good integration with \texttt{git}.
 
 \subsection{Hardware}
-All of the programming was done on my laptop (Macbook Pro 2014, 2.6 GHz Intel Core i5, with 8GB of RAM, a 128GB SSD and 128GB SD card).
+All of the coding was done on my laptop (2.6 GHz Intel Core i5, 8GB RAM, 128GB SSD).
 
 Running the models, especially on the highly dimensional gene expression data, is extremely computationally intensive, and runs much 
-quicker on a GPU. To this end I was given access to NVIDIA Titan X and P100 GPUs by Prof. Li\'o.
+quicker on a GPU. To this end I was given access to NVIDIA P100 GPUs on the Cambridge HPC by Prof. Li\'o.
 
 \subsection{Backing up}
-To back up my project and dissertation files and code I stored them in a git repository synced with a remote repository on GitHub. I also 
+To back up my project and dissertation files and code I stored them in a \texttt{git} repository synced with a remote repository on GitHub. I also 
 made regular backups of my entire SSD to an external hard drive.
 
 \section{Summary}

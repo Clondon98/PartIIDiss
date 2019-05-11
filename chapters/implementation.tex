@@ -1,7 +1,8 @@
 \chapter{Implementation}
 
-\textit{This section of the dissertation is focused on the steps involved in constructing, training and evaluating the models used in this project.
-All the models were written from scratch in PyTorch, using the original papers and their implementations (in Theano) as starting points.
+\textit{This section of the dissertation is focused on the steps involved in constructing, training and evaluating the models 
+described in the previous section.
+All the models were written from scratch in PyTorch, using the original papers and their implementations as starting points.
 This section also covers the tuning of the model hyperparameters, and the subsequent evaluation of the models.}
 
 \section{Model and class structure}
@@ -16,14 +17,13 @@ Tensors have the property \texttt{requires\_grad} which tells PyTorch whether to
 this is true the tensor records all operations on it, and build up a \textbf{computation graph}. The computation graph is a 
 directed acyclic graph containing input tensors as the roots and output
 tensors as leaves and has \texttt{Functions} as internal nodes. These functions are actually the expressions that are applied to the 
-tensors during the forward pass. The construction of this graph allows for backpropagation to be computed easily by performing a 
-backwards pass on this graph to compute the gradients. The graph is created during the forward pass, which is why they are referred to 
-as \textbf{dynamic} computation graphs.
+tensors during the forward pass. The graphs are constructed during the forward pass and allow backpropagation to be computed easily by performing a 
+backwards pass on the graph to compute the gradients.
 
-Parameters are tensors that are trainable parameters of the network, for example the weights and biases. The parameter class is a 
+\texttt{Parameters} are tensors that are trainable parameters of the network, for example the weights and biases. The parameter class is a 
 wrapper that tells a \textbf{module} whether to include a tensor in the parameters object of the module.
 
-Modules are the base class for all models in PyTorch, and are combinations of parameters and functions that will be applied to input 
+\texttt{Modules} are the base class for all models in PyTorch, and are combinations of parameters and functions that will be applied to input 
 data when the \texttt{forward} method of the module is called. All models subclass \texttt{nn.Module} and these modules can be nested
 to allow more complicated models to be constructed from basic constituent parts. For example the \texttt{nn.Linear} module contains 
 weight and bias parameters, and multiplies the input data by the weights and adds the bias in the forward method.
@@ -35,19 +35,17 @@ code clearer.
 
 The Classifier constructor takes as input the dimensionality of the input data, a list of hidden layer sizes, and the number of classes 
 in the output, and constructs a simple multilayer perceptron module using \texttt{nn.Linear} for each layer. It uses ReLU as the activation 
-function in all the hidden layers,
-because it is non-saturating, meaning that it does not suffer from the vanishing gradients problem, where the gradients of the early layers
-of the neural network become very small and so update very slowly. It uses a linear function on the output because the implementation of 
-cross entropy loss in PyTorch computes log softmax inside it, and so computing softmax in the classifier is not necessary.
+function in all the hidden layers and uses a linear function on the output because the implementation of 
+cross entropy loss in PyTorch computes log softmax inside it, and so computing softmax in the classifier makes using this incorrect.
 
-The Encoder is very similar to the classifier, except the constructor also takes in an activation function that is applied to the output 
+The Encoder is very similar to the Classifier, except the constructor also takes in an activation function that is applied to the output 
 of the network. This becomes important when the encoder is used in the SDAE. The Decoder constructor is the same as the Encoder to make 
 constructing Encoder/Decoder pairs as simple as possible. It takes in the same inputs but reverses them to create the complementary decoder,
 also including an output function if required.
 
 The Variational Encoder is a separate module from the Encoder, because the forward pass has three outputs. 
-The output of the network is two vectors of the same dimension, $\mu$ and $\sigma$, the parameters of the posterior Gaussian distributions.
-It also contains a module that samples from these distributions to create the hidden vector $z$ using the reparameterization trick 
+The output of the linear layers is two vectors of the same dimension, $\mu$ and $\sigma$, the parameters of the posterior Gaussian distributions.
+It also contains a function that samples from these distributions to create the hidden vector $z$ using the reparameterization trick 
 (Appendix~\ref{reparam}). The output of calling \texttt{forward} on the Variational Encoder is then $z$, $\mu$ and $\sigma$.
 
 \subsubsection{Weight initialisation}
@@ -91,27 +89,7 @@ deeper model winning on more complicated datasets and the shallower on less comp
 
 \subsection{Model training}
 
-All the models were trained using mini-batch gradient descent, as described in Section~\ref{batch}. One complete pass through the dataset 
-is called an \textbf{epoch} and 
-training involves running forward and backpropagation for a certain number of epochs to minimise the loss
-on the training set and cause the model to converge to a good approximation to the real function. The pseudocode for training the network 
-is shown below.
-\begin{algorithm}
-  \begin{algorithmic}[1]
-    \Procedure{Training}{$i$, $\mathcal{D}$, $\eta$, \texttt{model}, \texttt{loss\char`_function}}
-    \For{$i$ epochs}
-    \For{mini-batch $\mathcal{M}$ in $\mathcal{D}$}
-    \State \texttt{data, labels} = $\mathcal{M}$
-    \State \texttt{out} = \texttt{model(data)}
-    \State $\mathcal{J}$ = \texttt{loss\char`_function(out, labels)}
-    \State \texttt{model}.$\vec{\theta}$ = \texttt{model}.$\vec{\theta}$ - $\eta \nabla_{\vec{\theta}} \mathcal{J}$ 
-    \EndFor
-    \EndFor
-    \EndProcedure
-  \end{algorithmic}
-  \caption{Train neural network via mini-batch gradient descent} 
-  \label{alg:train}
-\end{algorithm}
+All the models were trained using mini-batch gradient descent, as described in Section~\ref{batch}.
 
 \subsection{Multilayer perceptron}
 The multilayer perceptron is a fully supervised model implemented to compare the performance between a fully supervised approach and the 
@@ -308,7 +286,7 @@ Therefore, I chose to optimise over a small number of hyperparameters that I fee
 The number of layers in a model is important because it controls the capacity~\cite{Goodfellow-et-al-2016} of the neural network. If the 
 capacity of the network is too high it can \textbf{overfit} to the training data, resulting in poor generalization to new examples, and if the capacity is 
 too low it can \textbf{underfit}, resulting in poor fitting to the train data. Therefore choosing the number of layers is an important hyperparameter.
-The universal approximation theorem states that a neural network with a single hidden layer can approximate any function, but the layer 
+The universal approximation theorem states that a neural network with a single hidden layer can approximate any function~\cite{DBLP:journals/mcss/Cybenko92}, but the layer 
 has to be exponentially large to give the same capacity as a multi-layer network; instead adding new layers is the preferred method, 
 with the deeper layers learning more complex and relevant features to the task.
 

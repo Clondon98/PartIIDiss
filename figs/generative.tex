@@ -1,0 +1,13 @@
+\begin{tikzpicture}
+    \draw node at (0, 0) [place] (z) {$\vec{z}$};
+    \draw node at (2, 0) [place] (y) {$\vec{y}$};
+    \draw node at (1, -2) [place] (x) {$\vec{x}$};
+
+    \begin{scope}[on background layer]
+    \fill[fill=gray!25] (x.0) arc [start angle=0, end angle=360, radius=4mm];
+    \fill[fill=gray!25] (y.270) arc [start angle=270, end angle=450, radius=4mm];
+    \end{scope}
+
+    \draw [->] (z) to (x);
+    \draw [->] (y) to (x);
+\end{tikzpicture}

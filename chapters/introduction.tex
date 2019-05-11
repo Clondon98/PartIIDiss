@@ -3,23 +3,30 @@
 \textit{The stated aim of this project was to develop a semi-supervised autoencoder-based method for classifying 
 cells into phenotypes \footnote{the observable characteristics and traits of an organism} using genetic data. To this end a range 
 of autoencoder based semi-supervised models have been implemented, 
-ranging from fairly simple to state-of-the-art. These models were then evaluated on selected gene expression datasets, including 
+ranging from fairly simple to state-of-the-art. These models were then evaluated on selected datasets, including 
 the Cancer Genome Atlas expression data.}
 
 \section{Motivation}
 
-Gene expression is the process of synthesising proteins from the gene via RNA. A transcriptome is the set of all RNA 
+Classifying organisms into phenotypes using genomic data is important in both medicine and agriculture. In medicine uses include 
+classifying tissues as cancerous and non-cancerous~\cite{Li2017}, predicting whether a strain of \textit{Helicobacter pylori} will lead to 
+stomach cancer~\cite{helicobacter}, and diagnosing people more susceptible to Crohn's disease and bipolar disorder~\cite{doi:10.1002/humu.23280}.
+In agriculture it can be used to predict whether a crop will grow well under harsh conditions before the crop is planted~\cite{cimmyt}
+
+In this project I will attempt to classify into phenotypes based on gene expression data. Gene expression is the process of synthesising 
+proteins from the gene via RNA. A transcriptome is the set of all RNA 
 molecules in a cell or population of cells. While every cell with a nucleus in an organism has the same DNA and genes, the cells
 differ in function, and this depends on which genes are being actively expressed. This in turn means the
 transcriptome contains information from both genetic and epigenetic sources~\cite{Gibney2010}. Epigenetic differences are differences
-in the phenotype without alterations to the DNA (e.g. DNA methylation). Therefore, as this project aims to classify cells into phenotypes, 
-gene expression data is used.
+in the phenotype without alterations to the DNA (e.g. DNA methylation), and therefore gene expression data provides more information about 
+the phenotype than DNA seqeuncing.
 
-Biological labs worldwide perform transcriptome analysis, resulting in huge amounts of gene expression data being
-generated. Much of this is shared or available online, giving researchers access to huge amounts of data. The development
-of RNA-Seq using next generation sequencing has also resulted in increased amounts of gene expression data, being more 
-accurate and cost effective than previous methods. However,
-while many of the datasets generated in different experiments may include transcriptomes for the same species of organism,
+These classifications and predictions are typically computed using a supervised learning technique, which requires that all the 
+datapoints used in training be associated with a phenotype label. However, biological labs worldwide perform transcriptome analysis, 
+generating gene expression data 
+which is available online. This, along with the development
+of RNA-Seq using next generation sequencing has resulted in huge amounts of gene expression data being available for researchers. However,
+while many of the datasets generated in different experiments may include transcriptomes for the desired organism,
 the majority of the time the experiments are measuring different phenotypes of the organism. This means that a 
 researcher wanting to analyse or predict a specific phenotype is unable to use much of the available data, being limited
 to only those labelled with the desired phenotype.
@@ -30,15 +37,16 @@ having been used early on to improve deep networks by pretraining them using sta
 and recently having been used to achieve state of the art semi-supervised performance as part of the ladder 
 network (Section~\ref{ladder}). The main reason for their use is that autoencoders are good at learning 
 important features of data in an unsupervised manner, and these features are often useful in improving 
-supervised performance.
-
-Therefore, with the use of semi-supervised autoencoder models it should be possible to leverage the data without
+supervised performance. Therefore, with the use of semi-supervised autoencoder models it should be possible to leverage the data without
 the desired phenotype to improve performance in predicting the phenotype.
 
-The reason for choosing autoencoder-based models to use with gene expression data is that they are implemented
-using neural networks. This is advantageous because neural networks work very well on non-linear data and are
-also able to effectively analyse data with very high dimensionality (number of features). Transcriptomes can
+The reason for choosing autoencoder-based models is that they are implemented
+using neural networks. This is advantageous because neural networks work well on non-linear data and are
+also able to effectively analyse data with high dimensionality (number of features). Transcriptomes can
 often contain several thousand genes, and so any model used must be able to cope with this level of dimensionality.
+
+This project is also the first comparison between these semi-supervised models on gene expression data, and is one of very few
+studies to have performed semi-supervised deep learning on genomic data.
 
 \section{Related work}
 
@@ -50,5 +58,6 @@ space from cancer transcriptomes ~\cite{Way2018ExtractingAB}. They and the semi-
 have also been used to model the change in the gene expression of tumours in response to certain drugs~\cite{10.1093/bioinformatics/btz158}.
 he semi-supervised model in the paper, Dr.VAE, jointly models both the drug response and the treatment outcomes.
 
-Ladder networks have also been used in biologically relevant ways, achieving state of the art accuracy in the binary cancer classification
+Ladder networks have also been used in biologically relevant (non semi-supervised)
+ways, achieving state of the art accuracy in the binary cancer classification
 problem using gene expression data~\cite{10.1007/978-3-319-78723-7_23}.
