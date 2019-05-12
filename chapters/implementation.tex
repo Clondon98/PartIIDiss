@@ -14,13 +14,13 @@ operations, many of which can be performed in parallel. GPUs have high memory ba
 optimised to perform simple operations in parallel, making them ideal for machine learning applications.
 
 Tensors have the property \texttt{requires\_grad} which tells PyTorch whether to record the operations that happen to the tensor. If 
-\texttt{requires\_grad=True} the tensor records all operations on it, and build up a \textbf{computation graph}. The computation graph is a 
+\texttt{requires\_grad=True} the tensor records all operations on it, and builds up a \textbf{computation graph}. The computation graph is a 
 directed acyclic graph containing input tensors as the roots and output
 tensors as leaves and has \texttt{Functions} as internal nodes. These functions are actually the expressions that are applied to the 
 tensors during the forward pass. The graphs are constructed during the forward pass and allow backpropagation to be computed easily by performing a 
 backwards pass on the graph to compute the gradients.
 
-\texttt{Parameters} are tensors that are trainable parameters of the network, for example the weights and biases. The parameter class is a 
+\texttt{Parameters} are tensors that hold the weights and biases of the network. The parameter class is a 
 wrapper that tells a \textbf{module} whether to include a tensor in the parameters object of the module.
 
 \texttt{Modules} are the base class for all models in PyTorch, and are combinations of parameters and functions that will be applied to input 
@@ -29,9 +29,8 @@ to allow more complicated models to be constructed from basic constituent parts.
 weight and bias parameters, and multiplies the input data by the weights and adds the bias in the forward method.
 
 \subsection{My base modules}
-My codebase contains four base modules that are used to construct the more complicated higher level models. The simplest of 
-these base classes are Classifier, Encoder and Decoder, and the difference between them is mainly semantic and used to keep the
-code clearer.
+My codebase contains four base modules that are used to construct the more complicated higher-level models. The simplest of 
+these base classes are Classifier, Encoder and Decoder.
 
 The Classifier constructor takes as input the dimensionality of the input data, a list of hidden layer sizes, and the number of classes 
 in the output, and constructs a simple multilayer perceptron module using \texttt{nn.Linear} for each layer. It uses ReLU as the activation 
@@ -47,18 +46,6 @@ The Variational Encoder is a separate module from the Encoder, because the forwa
 The output of the linear layers is two vectors of the same dimension, $\mu$ and $\sigma$, the parameters of the posterior Gaussian distributions.
 It also contains a function that samples from these distributions to create the hidden vector $z$ using the reparameterization trick 
 (Appendix~\ref{reparam}). The output of calling \texttt{forward} on the Variational Encoder is then $z$, $\mu$ and $\sigma$.
-
-\subsubsection{Weight initialisation}
-Random initialisation is required in neural networks to give them the best chance to find minima of the loss, as the starting 
-point can greatly effect the gradients in the network and the direction the parameters move in. If the weights were 
-deterministically initialised the network would always find the same minima, which may not be optimal.
-Weight initialisation can help models converge more easily as reported by Glorot and Bengio~\cite{DBLP:journals/jmlr/GlorotB10}.
-The default weight initialisation in PyTorch is Xavier initialisation which involves drawing the weights and biases from a normal 
-distribution with the parameters below:
-\begin{align*}
-  \mu = 0 \qquad \sigma = \frac{1}{\sqrt{n_{l-1}}}
-\end{align*}
-where $n_{l-1}$ is the number of neurons in the previous layer
 
 \subsection{Class structure}
 
