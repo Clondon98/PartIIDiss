@@ -1,6 +1,6 @@
 \chapter{Evaluation}
 
-\textit{In this section I will compare the performance of the semi-supervised models on both the MNIST and TCGA datasets, and will compare these 
+\textit{In this section I compare the performance of the semi-supervised models on both the MNIST and TCGA datasets, and compare these 
 to a fully supervised MLP operating on only the labelled data. I then discuss how these factored into the choices made for a more general
 tool. All the results in this section can be replicated using the Python and bash scripts found in the scripts folder}
 
@@ -38,9 +38,9 @@ over the MLP when only some of the data is labelled is what was expected.
 
 The results for M1 are much worse than those in the original Kingma paper~\cite{DBLP:journals/corr/KingmaRMW14}, and this is due to the use
 of a neural network as the classifier on the latent dimension. This neural network can only use the labelled samples, while the Kingma 
-paper uses a transductive support vector machine, which is able to utilise the unlabelled samples in seperating the classes. In order to
+paper uses a transductive support vector machine, which is able to utilise the unlabelled samples in separating the classes. In order to
 not overcomplicate the project I decided against implementing a TSVM and so the results are poor. Part of the reason the results are worse 
-than even the basic MLP are that the supervised learning cannot effect the weights of the VAE. If the VAE is encoding useless information 
+than even the basic MLP is that the supervised learning cannot update the weights of the VAE. If the VAE is encoding useless information, 
 the supervised update steps are unable to prevent this.
 
 The results for M2 are comparable to those in the Kingma paper, and for the 100 labelled samples are actually better, averaging 92.34 
@@ -83,11 +83,10 @@ it into an 8 or possibly a 4. In this way these maps allow a user to understand 
 
 As some of the samples in the TCGA dataset are missing expression levels for certain genes I decided to compare the results (using an MLP 
 and all of the data as labelled data) of three different techniques for removing the missing values. The first technique was to just drop
-all the columns of genes with any missing values, reducing the number of genes from 20,350 to 16334. The second technique involved 
+all the columns of genes with any missing values, reducing the number of genes from 20,350 to 16,334. The second technique involved 
 replacing all the missing gene expression values with zero, and the third involved replacing them with the mean of the expression 
-level for all the samples. The results are summarized in the table below:
+level for all the samples. See table ~\ref{tab:imputation}:
 \begin{table}[H]
-  \label{tab:imputation}
   \small % text size of table content
   \centering % center the table
   \begin{tabular}{CCC} % alignment of each column data
@@ -97,7 +96,8 @@ level for all the samples. The results are summarized in the table below:
   95.09 \pm 0.40 & 95.67 \pm 0.38 & 95.81 \pm 0.37 \\
   \bottomrule[\heavyrulewidth] 
   \end{tabular}
-  \caption{TCGA data imputation 10-fold cross-validation percentage accuracies} 
+  \caption{TCGA data imputation 10-fold cross-validation percentage accuracies}
+  \label{tab:imputation} 
 \end{table}
 
 Computing a paired t-test helps discern if any one method could be considered better.
@@ -149,12 +149,12 @@ as the number of layers and epochs that get the best performance from each model
   \caption{TCGA 10-fold cross-validation percentage accuracies} 
 \end{table}
 
-As can be seen from the results in the table there is no performance benefit in using the M1 model over the simple MLP, but the accuracy 
+As can be seen from the results in the table, there is no performance benefit in using the M1 model over the simple MLP, but the accuracy 
 achieved nevertheless shows that M1 is probably learning an informative manifold. The SDAE shows a slight performance advantage, but 
 clearly performs less well than M2 and the ladder.
 
-The ladder and M2 both show a significant performance advantage over the MLP, and by computing the a t-test between the three models 
-it can be shown which models perform statistically better with each amount of labelled data. 
+The ladder and M2 both show a significant performance advantage over the MLP, and computing a t-test between the three models 
+it can show which models perform statistically better with each amount of labelled data. 
 \begin{table}[H]
   \label{tab:tcga_ttest}
   \small % text size of table content
@@ -172,8 +172,8 @@ it can be shown which models perform statistically better with each amount of la
   \caption{TCGA 10-fold t-statistics between MLP, ladder and M2} 
 \end{table}
 
-The significance threshold for a two fold t-test, using  p=0.05 and 9 degrees of freedom, is 2.26. Therefore, looking at these results 
-the ladder network significantly outperforms the MLP at every amount of labelled data. The M2 model outperfoms the MLP significantly 
+The significance threshold for a two fold t-test, using  p=0.05 and 9 degrees of freedom, is 2.26. These results 
+show the ladder network significantly outperforming the MLP at every amount of labelled data. The M2 model outperfoms the MLP significantly 
 until all the data is labelled. At this point the performance should be almost exactly the same as the MLP, as the training of the 
 classifier in the M2 model is only controlled by the supervised cross entropy loss. The ladder is outperformed by the M2 model with 100
 labelled samples, but with more labelled samples the difference between them is not statistically significant.
@@ -182,12 +182,12 @@ labelled samples, but with more labelled samples the difference between them is 
 
 Accuracy is not always the best metric to use when evaluating a machine learning model, expecially when the classes in the model are 
 imbalanced, as it can mean that predicting just the most populous classes results in good accuracy. For binary classification one of the 
-preferred methods is using the Matthews correlation coefficient, which is regarded as 
+preferred methods is the Matthews correlation coefficient, which is regarded as 
 a balanced measure even when the classes are unbalanced because it takes into account the balance ratios of the four possible 
-categories (true positive, true negative, false positive, false negative)~\cite{Chicco2017}. There is a multiclass variant of this 
+categories~\cite{Chicco2017}. There is a multiclass variant of this 
 coefficient that ranges between a minimum value of between $-1$ and $0$
-(depending on the distribution) and $+1$, with $+1$ meaning perfect correlation between the predicted and actual labels and $0$ meaning no 
-correlation. This is calculated as below for $k$ classes: 
+(depending on the distribution) and maximum value $+1$. $+1$ means perfect correlation between the predicted and actual labels. 
+This is calculated as below for $k$ classes: 
 
 \begin{align}
   \text{MCC} = \frac{\sum_{k}\sum_{l}\sum_{m} C_{kk}C_{lm} - C_{kl}C_{mk}}{
@@ -223,84 +223,67 @@ This is actually not much more informative than the accuracy scores, giving very
 \subsubsection{Confusion matrix}
 
 Viewing the confusion matrix can sometimes give a better insight into where a model is successful and unsuccessful. A confusion
-matrix has the actual labels on the y-axis and the predicted labels on the x-axis. Each cell contains the number of datapoints with the 
-real label on the y-axis that have been predicted the label on the x-axis.
+matrix has the actual labels on the y-axis and the predicted labels on the x-axis. Each row represents the instances in an actual class 
+while each column represents the instances in a predicted class.
 
 The confusion matrices for the TCGA data are very large due to the large number of classes in the data, and so are included in Appendix~\ref{confusion} 
 where they can be viewed in larger size.
 
 Both the ladder and M2 matrices are very similar, and show the same weaknesses. \textit{Rectum adenocarcinoma} 
 is misclassified almost 
-100\% of the time by both models, as it is a very similar cancer to \textit{colon adenocarcinoma}, with both being the same type of cancer
-occuring in a very similar location in the body. The other often misclassified cancers include \textit{brain lower grade glioma} and 
-\textit{glioblastoma mutliforme}, both gliomas located in the brain with differing severity, and \textit{uterine carcinosarcoma} and 
-\textit{uterine corpus endometriod carcinoma}. 
+100\% of the time by both models, as it is a very similar cancer to \textit{colon adenocarcinoma}. 
+The other often misclassified cancers include \textit{brain lower grade glioma} and 
+\textit{glioblastoma mutliforme}, and \textit{uterine carcinosarcoma} and 
+\textit{uterine corpus endometriod carcinoma}. All are similar cancers occuring in similar areas of the body.
 
 The difficulty in classifying these using gene expression is to do with the similarities in gene expression within cells of a certain tissue.
-There is also the fact that the boundary between the grades of cancer cannot always be well defined, depending on a range of factors 
+Moreover, the boundary between grades of cancer cannot always be well defined, depending on a range of factors 
 including rate of growth and necrosis that can cause the cancer to move between grades.
 
 However, when the number of labelled examples is increased these misclassifications are reduced, with only the rectum and colon adrenocarcinoma 
-significantly misclassifed with all the labels.
+still significantly misclassifed.
 
 \subsubsection{Ensemble learning} \label{ensemble}
 
 One way of improving the performance of a classification model is combining the classifications of two different models which may have learned
 slightly different features and class boundaries. The combination of the models can then lead to an improvement in the accuracy as the 
-different features and boundaries can combine to make a better classifier. The simplest way of doing this is to take the softmax 
-output of the different models and sum them together. Dividing by the number of models then gives a new probability distribution that is the
-average of the previous models. Taking the maximum of this distribution is the predicted label, and if the models have learned complementary
-features this will improve the accuracy. Combining the M2 and ladder predictions produces the results below:
+different features and boundaries can combine to make a better classifier. The simplest way of doing this is to sum the softmax 
+output of the different models together. Dividing by the number of models then gives a new probability distribution that is the
+average of the previous models. The maximum of this distribution is the predicted label, and if the models have learned complementary
+features this will improve accuracy. Combining the M2 and ladder predictions produces the results below:
+
 \begin{table}[H]
-  \label{tab:ensemble}
   \small % text size of table content
   \centering % center the table
-  \begin{tabular}{R|CC} % alignment of each column data
+  \begin{tabular}{R|CC|CC} % alignment of each column data
   \toprule[\heavyrulewidth]\toprule[\heavyrulewidth]
-  \shortstack{Number of \\ labelled samples} & \textbf{Accuracy} & \textbf{MCC} \\ 
+  & \multicolumn{2}{c}{\textbf{Ensemble statistics}} & \multicolumn{2}{c}{\textbf{t-test}}\\
+  \shortstack{Number of \\ labelled samples} & \textbf{Accuracy} & \textbf{MCC} & \textbf{Ensemble/M2} & \textbf{Ensemble/Ladder}\\ 
   \midrule
-  100 & 90.89 \pm 0.59 & 0.9036 \\
-  500 & 94.00 \pm 0.49 & 0.9365 \\
-  1000 & 94.22 \pm 0.48 & 0.9388 \\
-  \text{All} & 96.82 \pm 0.36 & 0.9662 \\
+  100 & 90.89 \pm 0.59 & 0.9036 & -1.17 & 5.34 \\
+  500 & 94.00 \pm 0.49 & 0.9365 & 4.11 & 3.39 \\
+  1000 & 94.22 \pm 0.48 & 0.9388 & 3.42 & 1.08 \\
+  \text{All} & 96.82 \pm 0.36 & 0.9662 & 2.24 & 0.87 \\
   \bottomrule[\heavyrulewidth] 
   \end{tabular}
-  \caption{Accuracy and MCC for an average of M2 and ladder} 
+  \caption{Ensemble statistics} 
+  \label{tab:ensemble}
 \end{table}
 
 These results are statistically significant improvements over M2 and the ladder network for different amounts of labelled data.
-
-\begin{table}[H]
-  \label{tab:tcga_ensemble}
-  \small % text size of table content
-  \centering % center the table
-  \begin{tabular}{R|CC} % alignment of each column data
-  \toprule[\heavyrulewidth]\toprule[\heavyrulewidth]
-  \shortstack{Number of \\ labelled samples} & \textbf{Ensemble/M2} & \textbf{Ensemble/Ladder} \\ 
-  \midrule
-  100 & -1.17 & 5.34 \\
-  500 & 4.11 & 3.39 \\
-  1000 & 3.42 & 1.08 \\
-  \text{All} & 2.24 & 0.87 \\
-  \bottomrule[\heavyrulewidth] 
-  \end{tabular}
-  \caption{TCGA 10-fold t-statistics between Ensemble, M2 and ladder} 
-\end{table}
-
-This combined model performs significantly better than M2 (at p=0.05 level) on for all except 100 labelled samples, where it does not 
+This combined model performs significantly better than M2 (at p=0.05 level) on all but 100 labelled samples, where it does not 
 perform significantly worse. It is significantly better than the ladder network for both 100 and 500 labeled samples. 
 
-It seems that the model therefore is the best of both worlds, outperforming the individual best models, and therefore will factor into 
-the decision of how a more general tool should be built.
+It seems that this is the best of both worlds, outperforming the individually best models.
 
 \section{Making a tool} \label{tool}
 
 The information in the previous section informed the choices I made in constructing a tool, found in \texttt{main.py}.
 
-In the interest of simplicity the tool is a simple command line tool where the  only arguments a user provides are the file to load the data 
+The tool is a simple command line tool where the  only arguments a user provides are the file to load the data 
 from, the mode the tool should be in and the name of the folder to save any outputs in.
 
-There are two modes, train and classify. In both the data is first loaded in, and if there are any missing values they are imputed using 
+There are two modes: train and classify. In both the data is first loaded in, and  any missing values are imputed using 
 mean-value imputation to avoid losing data.
 
 In train mode the labelled data is first split in two, to perform a very simple 2-fold cross validation to find the best hyperparameters for two 
