@@ -8,8 +8,7 @@ criteria and resources used in the project.}
 \section{Neural networks}
 
 This project involves using \textbf{autoencoders} as a basis for semi-supervised learning. 
-Autoencoder architectures are all based on \textbf{neural networks} so it is important to have a good understanding of the basic principles
-of these networks.
+Autoencoder architectures are all based on \textbf{neural networks} so it is important to understand the basic principles.
 
 \subsection{The perceptron}
 
@@ -28,17 +27,17 @@ The function computed by the neuron is then:
 \end{equation}
 
 The activation function applied will depend on what the neuron is being used for.
-The main activation functions used in this project is ReLU, which has the form:
+The main activation function used in this project is ReLU, which has the form:
 \begin{align}
   \sigma(z) = max(0, z)
   \label{eq:relu}
 \end{align}
-It is sed in the hidden layers of multilayer perceptrons to provide non-linearity, allowing the network to learn more 
-complicated functions. It has seen massive uptake due to performance benefits over the previously popular sigmoid function~\cite{relu}.
+It is used in the hidden layers of multilayer perceptrons to provide non-linearity, allowing the network to learn more 
+complicated functions~\cite{relu}.
 
 \subsection{Multilayer perceptrons}
 
-Multilayer perceptrons are made up of multiple perceptrons arranged into \textbf{layers}. 
+Multilayer perceptrons consist of multiple perceptrons arranged into \textbf{layers}. 
 Each neuron in a layer has its own set of weights
 $\vec{w}$ and takes the ouputs of the previous layer (or the inputs to the network if the neuron is in the first layer) $\vec{x}$ in order to compute the 
 output value $y$ for the neuron. This value is then used as an input to the next layer, or part of the output of the network if the neuron is in
@@ -51,9 +50,9 @@ the output layer.
   \end{center}
 \end{figure}
  
-The main reason for neural networks with multiple layers is that they can model much more \textbf{complex non-linear relationships}
+The reason for multi-layers neural networks is that they can model more \textbf{complex non-linear relationships}
 ~\cite{Goodfellow-et-al-2016} than single 
-neurons and single layer models are able to. Using non-linear activation functions such as ReLU \eqref{eq:relu} allow neurons to model simple 
+neurons and single-layer models are able to. Using non-linear activation functions such as ReLU \eqref{eq:relu} allow neurons to model simple 
 non-linear functions, and combining these into layers allows them to model these more complex non-linear relationships.
 
 I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the trainable parameters 
@@ -63,12 +62,12 @@ I will denote the function computed by a neural network as $f_{\vec{\theta}}(\ve
 
 A dataset for classification training is given as pairs of numerical \textbf{features} and a \textbf{label}: $(\vec{x}, y)$. These features are 
 the input to the network,
-and the label is the target. A label cannot be directly utilised by the a neural network as they operate on numerical data. Therefore it is 
+and the label is the target. Labels cannot be directly utilised by a neural network as they operate on numerical data. Therefore it is 
 necessary to transform the data into a numerical representation.
 
 \textbf{One-hot encoding} assigns an integer $i$ to each class and makes a vector of length $n$ (where $n$ is the 
 number of classes), setting the $ith$ element to one and all other elements to zero. E.g., with three classes
-the one hot labels would be $[1, 0, 0]$ , $[0, 1, 0]$ and $[0, 0, 1]$. The network then has an output node corresponding to each class 
+the one-hot labels would be $[1, 0, 0]$ , $[0, 1, 0]$ and $[0, 0, 1]$. The network then has an output node corresponding to each class 
 \cite{WhyOneHo55:online}.
 
 The \textbf{softmax} function is then applied to the output of the network to give a probability distribution over the classes. It has the 
@@ -86,7 +85,7 @@ entropy loss, computed as:
 \end{align}
 This is high when the probability of the correct label is low, because $\lim_{x \to 0} -\log{x} = \infty$.
 
-\subsection{Training the network}
+\subsection{Training the network} \label{train}
 
 Neural networks are randomly initialised and this means that on the first pass
 the output of the network will likely be very far from the correct value. Training a neural network involves adjusting its
@@ -96,7 +95,7 @@ a minima.
 
 \subsubsection{Updating the weights}
 
-Forward propagation is the flow of information through the network from input features to the output values. From these output values the loss is calculated. 
+Forward propagation is the flow of information through the network from input features to output values. From these output values the loss is calculated. 
 The trainable parameters of a neural network can then be updated by first finding the gradient of the loss with respect to these trainable parameters.
 The process of computing these gradients is called \textbf{backpropagation} and a full derivation can be found in Appendix~\ref{backprop}. The important notation is:
 
@@ -106,9 +105,9 @@ The process of computing these gradients is called \textbf{backpropagation} and 
   \item $\nabla_{\vec{\theta}} J(\vec{\theta})_k$ is a vector of gradients of the loss with respect to all the trainable parameters 
 \end{itemize}
 
-Once the gradients for all the weights have been calculated the weights are updated. By moving the weights a small step in the direction of steepest 
-negative gradient the loss should decrease as the parameters are shifting it towards a minima. This means that the model is getting 
-better at modelling the training set. Taking these small steps is called \textbf{gradient descent}. The weight update rule is: 
+Once the gradients for all the weights have been calculated the weights are updated. By moving the weights incrementally in the direction of steepest 
+negative gradient the loss should decrease as the parameters are shifting it towards a minimum. The model thus gets
+better at modelling the training set. These incremental steps are called \textbf{gradient descent}. The weight update rule is: 
 \begin{align}
   \vec{\theta} & := \mathbf{\vec{\theta}} - \eta \sum_{k} \frac{\partial J(\vec{\theta})_k}{\partial \mathbf{\vec{\theta}}} \\
   & := \mathbf{\vec{\theta}} - \eta \sum_{k} \nabla_{\vec{\theta}} J(\vec{\theta})_k \\
@@ -116,15 +115,15 @@ better at modelling the training set. Taking these small steps is called \textbf
 \end{align}
 
 $\eta$ is a \textbf{hyperparameter}. Hyperparameters are parameters of the model that are not trained but are set by the user before training.
-$\eta$ is called the \textbf{learning rate} and controls how large of a step is taken each time the weight is updated. If the learning rate is 
-too high the weights can ``jump" over minima, and even diverge out of a minima, but if the rate is too low it can take too long to converge,
-or get stuck in a less desirable local minima. The step size is also proportional to the magnitude of the gradient, allowing the optimizer to 
+$\eta$ is called the \textbf{learning rate} and controls the size of the step taken each time the weight is updated. If the learning rate is 
+too high the weights can ``jum'' over minima, and even diverge out of a minima, but if the rate is too low it can take too long to converge,
+or get stuck in a less desirable local minima. The step size is proportional to the magnitude of the gradient, allowing the optimizer to 
 take a larger step towards a minima if the gradient is steeper.
 
 \subsubsection{Batch learning} \label{batch}
 
 A neural network is generally run over a fixed number of samples for each iteration. This is called 
-mini-batch gradient descent and it is the most popular because it has stability advantages over stochastic gradient descent (one sample at a time)
+mini-batch gradient descent and it is the most popular because it has stability advantages over stochastic gradient descent (one sample at a time),
 and computational advantages over batch (the entire dataset every iteration). 
 Stochastic gradient descent has more noise as each update is based on an individual example, causing the weights to jump around more. It also doesn't take advantage of the 
 parallelisation possiblity of GPUs - it's much more efficient to send multiple samples through at once. Batch has the problem of storing the whole 
@@ -157,18 +156,18 @@ is shown below.
 
 \section{The manifold hypothesis}
 
-The \textbf{dimensionality} of data is the number of features needed to specify the data. For example, a very popular machine learning dataset
-is the MNIST dataset, containing 28x28 grayscale images of handwritten digits. The dimensionality of each datapoint is 784, as that is the
+\textbf{Dimensionality} refers to the number of features needed to specify data. For example, a very popular machine learning dataset
+is MNIST, containing 28x28 grayscale images of handwritten digits. The dimensionality of each datapoint is 784, as that is the
 number of pixels specifying each image.
 
-\textbf{The manifold hypothesis} suggest that high dimensional data can actually be viewed as lying on or near to a
-lower dimensional manifold embedded in this higher dimensional space.
+\textbf{The manifold hypothesis} suggests that high-dimensional data can actually be viewed as lying on or near to a
+lower-dimensional manifold embedded in this higher-dimensional space.
 
-The precise definition of an n-dimensional manifold is ``a 
-topological space that is locally Euclidea'', i.e. there is a neighbourhood around each point on the manifold that can be describe as n-dimensional 
-Euclidean space. However, it is much easier to think about with an intuitive example - imagine that all the datapoints in a 
-dataset lie on piece of paper, and so can be described with two features, an $x$ and $y$ axis. If the paper is taken and scrunched up and 
-twisted it now has a three dimensional shape, but the data still lies on a two-dimensional manifold and, by unscrunching the paper, can still 
+The definition of an n-dimensional manifold is ``a 
+topological space that is locally Euclidean'', i.e. there is a neighbourhood around each point on the manifold that can be describe as n-dimensional 
+Euclidean space. It is much easier to grasp with an intuitive example - imagine that all the datapoints in a 
+dataset lie on piece of paper, and so can be described with two features, an $x$ and $y$ axis. If the paper is scrunched up 
+it now has a three dimensional shape, but the data still lies on a two-dimensional manifold. Unscrunch the paper and it can still 
 be described with only two features.
 \begin{figure}[H]
   \centering
@@ -177,9 +176,9 @@ be described with only two features.
   \label{fig:manifold}
 \end{figure}
 
-The manifold hypothesis suggests that many features in high dimensional data are actually redundant,
-i.e. it can be described using fewer features. Again this can be seen intuitively by the fact that the set of 784 pixel images 
-that look like a recognisable digit is a very small subset of the set of 784 pixel images - randomly selected pixel values look like 
+The manifold hypothesis suggests that many features in high-dimensional data are actually redundant,
+i.e. it can be described using fewer features. Again this can be seen intuitively in that the set of 784 pixel images 
+that look like a recognisable digit is a very small subset of 784 pixel images - randomly selected pixel values look like 
 random noise, suggesting that there is a lot of redundancy in the MNIST features.
 \begin{figure}[H]
   \centering
@@ -197,20 +196,21 @@ random noise, suggesting that there is a lot of redundancy in the MNIST features
   \label{fig:digit}
 \end{figure}
 
-This leads to \textbf{non-linear dimensionality reduction} techniques. By finding this lower dimensional
-mainfold the data can be explained with fewer features and possibly be more easily separated and classified. Going back to the paper example,
-linear dimensionality reduction techniques (e.g. principal component analysis) would be able to find the 2D embedding if the paper were 
+This leads to \textbf{non-linear dimensionality-reduction} techniques. By finding this lower-dimensional
+manifold the data can be explained with fewer features and possibly be more easily separated and classified. Going back to the paper example,
+linear-dimensionality reduction techniques (e.g. principal component analysis) would be able to find the 2D embedding if the paper were 
 rotated, translated or stretched, but would be unable to unscrunch the paper, as that amounts to a non-linear embedding. Autoencoders are 
 used for non-linear dimensionality reduction, and are described in the next section.
 
 \section{Autoencoders}
 
-Autoencoders use neural networks in an unsupervised way to try and learn new \textbf{latent} representations of the data, typically with reduced 
-dimensionality (i.e. there are fewer features in the latent data than in the input data). The use of neural networks allow it to learn a 
+Autoencoders use neural networks in an unsupervised way to try and learn new \textbf{latent} representations of data, typically with reduced 
+dimensionality (i.e. there are fewer features in the latent data than in the input data). The use of neural networks allow the autoencoder 
+to learn a 
 non-linear mapping from the data to the latent representation.
 
-Autoencoders are made up of two parts, the encoder and the decoder. The encoder takes in the original data, $\vec{x}$, 
-and outputs a latent representation, $\vec{z} = f_{\vec{\theta}}(\vec{x})$. The decoder then takes in this latent representation and 
+Autoencoders compromise an encoder and a decoder. The encoder takes in the original data, $\vec{x}$, 
+and outputs a latent representation, $\vec{z} = f_{\vec{\theta}}(\vec{x})$. The decoder then takes this latent representation and 
 attempts to reconstruct $\vec{x}$, outputting $\vec{\hat{x}} = h_{\vec{\phi}}(\vec{z})$. This allows an unsupervised problem to be turned 
 into a supervised problem, using $\vec{x}$ as the target.
 \begin{figure}[H]
@@ -227,7 +227,7 @@ Simple autoencoders constrain the network by making the number of latent feature
 features. This prevents the network from simply learning the identity function, and hopefully results in an informative latent space.
 
 \subsubsection{Training}
-Autoencoders can be trained end to end using backpropagation as explained in section \ref{backprop}. The target $\vec{x}$ and output 
+Autoencoders can be trained end to end using backpropagation as explained in Section \ref{train}. The target $\vec{x}$ and output 
 $\vec{\hat{x}}$ are both vectors and so 
 the \textbf{squared Euclidean distance}\footnote{also known as mean square error} is used as the loss per datapoint. Both the encoder weights 
 $\vec{\theta}$ and 
@@ -329,7 +329,7 @@ it is not possible to backpropagate the reconstruction loss through the drawing 
 \textbf{the reparameterization trick} is used. 
 An explanation can be found in Appendix ~\ref{reparam}.
 
-\section{Semi-supervised models}
+\section{Semi-supervised models} \label{ss_models}
 
 Semi-supervised learning involves leveraging large amounts of unlabelled data to increase model performance on supervised learning tasks. 
 In most fields unlabelled data is much easier to obtain than labelled data. As I mentioned in the Introduction, there is a wealth of gene 
