@@ -10,11 +10,11 @@ This section also covers the tuning of the model hyperparameters, and the subseq
 \subsection{PyTorch data structures}
 The most important computational unit in PyTorch is the \textbf{tensor}. Tensors are similar to multidimensional arrays, but they are able to 
 utilise GPUs to perform operations in parallel. This is important because the running of a neural network involves thousands of matrix 
-operations, many of which can be performed in parallel, as they don't depend on each other. GPUs have high memory bandwidth and are 
-optimised to perform simple operations in parallel, making them well suited for machine learning applications.
+operations, many of which can be performed in parallel. GPUs have high memory bandwidth and are 
+optimised to perform simple operations in parallel, making them ideal for machine learning applications.
 
 Tensors have the property \texttt{requires\_grad} which tells PyTorch whether to record the operations that happen to the tensor. If 
-this is true the tensor records all operations on it, and build up a \textbf{computation graph}. The computation graph is a 
+\texttt{requires\_grad=True} the tensor records all operations on it, and build up a \textbf{computation graph}. The computation graph is a 
 directed acyclic graph containing input tensors as the roots and output
 tensors as leaves and has \texttt{Functions} as internal nodes. These functions are actually the expressions that are applied to the 
 tensors during the forward pass. The graphs are constructed during the forward pass and allow backpropagation to be computed easily by performing a 
