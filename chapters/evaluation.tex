@@ -23,13 +23,13 @@ total number of datapoints in the test set, given below as a percentage of point
   & \multicolumn{5}{c}{\textbf{Models}}\\
   \shortstack{Number of \\ labelled samples} & \textbf{MLP} & \textbf{SDAE} & \textbf{M1} & \textbf{M2} & \textbf{Ladder} \\ 
   \midrule
-  100 & 71.75 \pm 0.82 & 74.86 \pm 0.85 & 49.00 \pm 0.98 & 92.34 \pm 0.52 & 96.64 \pm 0.35\\
-  1000 & 88.86 \pm 0.62 & 91.97 \pm 0.53 & 83.44 \pm 0.73 & 96.57 \pm 0.36 & 98.03 \pm 0.27\\
-  3000 & 93.88 \pm 0.47 & 95.60 \pm 0.40 & 88.55 \pm 0.62 & 97.19 \pm 0.32 & 98.35 \pm 0.25\\
-  \text{All} & 98.41 \pm 0.25 & 98.58 \pm 0.23 & 90.30 \pm 0.58 & 98.45 \pm 0.24 & 98.95 \pm 0.20\\
+  100 & 71.75 \pm 0.82 & 74.86 \pm 0.85 & 49.00 \pm 0.98 & 92.34 \pm 0.52 & \textbf{96.64} \pm 0.35\\
+  1000 & 88.86 \pm 0.62 & 91.97 \pm 0.53 & 83.44 \pm 0.73 & 96.57 \pm 0.36 & \textbf{98.03} \pm 0.27\\
+  3000 & 93.88 \pm 0.47 & 95.60 \pm 0.40 & 88.55 \pm 0.62 & 97.19 \pm 0.32 & \textbf{98.35} \pm 0.25\\
+  \text{All} & 98.41 \pm 0.25 & 98.58 \pm 0.23 & 90.30 \pm 0.58 & 98.45 \pm 0.24 & \textbf{98.95} \pm 0.20\\
   \bottomrule[\heavyrulewidth] 
   \end{tabular}
-  \caption{MNIST 5-fold cross-validation percentage accuracies} 
+  \caption[MNIST 5-fold cross-validation percentage accuracies]{MNIST 5-fold cross-validation percentage accuracies (highest accuracy in \textbf{bold})} 
 \end{table}
 
 \subsubsection{Performance comparisons}
@@ -61,12 +61,12 @@ sections of the image for classifying.
   \centering
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \includegraphics[scale=.25]{figs/vanilla_saliency_maps.pdf}
+    \includegraphics[scale=.3]{figs/vanilla_saliency_maps.pdf}
     \caption{Vanilla saliency}
   \end{subfigure}
   \begin{subfigure}[b]{0.4\linewidth}
     \centering
-    \includegraphics[scale=.25]{figs/guided_saliency_maps.pdf}
+    \includegraphics[scale=.3]{figs/guided_saliency_maps.pdf}
     \caption{Guided saliency}
   \end{subfigure}
   \caption{Saliency maps for 9}
@@ -146,7 +146,8 @@ as the number of layers and epochs that get the best performance from each model
   \text{All} & 96.47 \pm 0.37 & 96.13 \pm 0.39 & 93.67 \pm 0.50 & 96.53 \pm 0.37 & \textbf{96.69} \pm 0.37\\
   \bottomrule[\heavyrulewidth] 
   \end{tabular}
-  \caption{TCGA 10-fold cross-validation percentage accuracies} 
+  \caption[TCGA 10-fold cross-validation percentage accuracies]{TCGA 10-fold cross-validation percentage accuracies (highest accuracy in 
+  \textbf{bold})} 
 \end{table}
 
 As can be seen from the results in the table, there is no performance benefit in using the M1 model over the simple MLP, but the accuracy 
@@ -294,10 +295,11 @@ saved to the output folder.
 
 In classify mode the models are loaded from the specified output folder, and the data is passed through both. The outputs are combined 
 as described in Section~\ref{ensemble}, and the results are saved to the outputs folder.
-
 \begin{figure}[H]
-  \centering
-  \includegraphics[scale=1]{figs/tool.pdf}
-  \caption{Pipeline of the tool}
-  \label{fig:pipeline}
+\centering\includegraphics[scale=.9]{figs/tool.pdf}
+\centering\includegraphics[scale=.75, right]{figs/pipeline_key.pdf}
+\caption{Pipeline of the tool}
+\label{fig:pipeline}
 \end{figure}
+
+The model is slightly different to that described in the project proposal. While it takes in a file and trains a model that can then be used for predicting a phenotype, as proposed, it does not have support for multiple output types, supporting only single label classification. After beginning the project and learning more about machine learning and the models I was using, I realised that the M2 model and ladder were developed with single label classification in mind and that adapting them to additional output types would require significant amounts of extra theory and coding that would make the project infeasible. For example, using an image as the output type (as suggested in my Project Proposal) is not a sensible suggestion, as images are affected by many factors other than the subject in them, and would likely contain more information than the input to the model. Therefore I limited the scope of the tool to single label classification.

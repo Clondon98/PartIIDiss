@@ -58,14 +58,16 @@ has already been computed and so this gradient can be calculated.
 
 \chapter{Derivation of VAE loss} \label{vae_loss}
 
-\begin{align}
+Starting from $\log$ of the evidence it is possible to compute the ELBO by first applying the law of total probability. The approximate posterior can be introduced because $\frac{q(z|x)}{q(z|x)} = 1$, and then this is by definition an expectation. Jensen's inequality states that $\mathbb{E}[f(x)] \leq f(\mathbb{E}[x])$. The rest is a matter of rearranging logarithms and realising that $\mathbb{E}_q\left[\log\frac{p(z)}{q(z|x)}\right] = - D_{KL}(q(z|x)||p(z))$.
+
+\begin{align*}
   \log p(x) & = \log \int p(x|z)p(z) dz &\text{Law of total probability}\\
   & = \log \int p(x|z)p(z) \frac{q(z|x)}{q(z|x)} dz\\
   & = \log\left(\mathbb{E}_q \left[\frac{p(x|z)p(z)}{q(z|x)}\right]\right) \\
   & \geq \mathbb{E}_q \left[\log\frac{p(x|z)p(z)}{q(z|x)}\right] &\text{Jensen's inequality}\\
   & = \mathbb{E}_q \left[\log p(x|z) + \log\frac{p(z)}{q(z|x)}\right] \\
   & = \mathbb{E}_q [\log p(x|z)] - D_{KL}(q(z|x)||p(z))
-\end{align}
+\end{align*}
 
 \chapter{The reparameterization trick} \label{reparam}
 
@@ -81,6 +83,8 @@ with respect to $\vec{\mu}$ and $\vec{\sigma}$ and therefore is differentiable w
 gradients can be backpropagated through the network it is possible to train the VAE using gradient descent.
 
 \chapter{Derivation of semi-supervised VAE loss} \label{ssvae_loss}
+
+These derivations arise similarly to that in Appendix~\ref{vae_loss}.
 
 For labelled data the model should maximise evidence $\log p(\vec{x}, y)$:
 \begingroup
@@ -104,7 +108,7 @@ For unlabelled data the model should maximise $\log p(\vec{x})$:
   \log p(x) & = \log \sum_{y} \int p(x, y, z) dz \\
   & = \log \sum_{y} \int p(x, y, z) \frac{q(z, y|x)}{q(z, y|x)} dz\\
   & = \log \sum_{y} \int p(x, y, z) \frac{q(z|x, y)q(y|x)}{q(z|x, y)q(y|x)} dz\\
-  & \geq \sum_{y} q(y|x) \int q(z|x, y) \log\frac{p(x, y, z)}{q(z|x, y)q(y|x)} dz \qquad \text{Jensen's inequality}\\
+  & \geq \sum_{y} q(y|x) \int q(z|x, y) \log\frac{p(x, y, z)}{q(z|x, y)q(y|x)} dz\\
   & = \sum_{y} q(y|x) \int q(z|x, y) \log\frac{p(x, y, z)}{q(z|x, y)} dz - \sum_{y} q(y|x) \log q(y|x) \int q(z|x, y) dz\\
   & = \sum_{y} q(y|x)(-\mathcal{L}(x, y)) + \mathcal{H}(q(y|x)) \\
   & = -\mathcal{U}(x, y)
@@ -113,15 +117,18 @@ For unlabelled data the model should maximise $\log p(\vec{x})$:
 
 \chapter{Confusion matrices} \label{confusion}
 
+These are included here as the large size made it infeasible to include in the Evaluation and stay within the page count. The x-axis (after rotating the page $90^{\circ}$) is the correct class, while the y-axis is the class predicted by the model. Therefore $C_{i,i}$ is the number of class $i$ predicted correctly while $\sum_{j, i \neq j} C_{i,j}$ is the number of false negatives and $\sum_{j, i \neq j} C_{j,i}$
+is the number of false positives.
+
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=0.4, angle=90]{figs/m2_tcga_minmax_m2_100.pdf}
+  \includegraphics[scale=0.5, angle=90]{figs/m2_tcga_minmax_m2_100.pdf}
   \caption{Confusion matrix for M2 model with 100 labels}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=0.4, angle=90]{figs/ladder_tcga_standard_100.pdf}
+  \includegraphics[scale=0.5, angle=90]{figs/ladder_tcga_standard_100.pdf}
   \caption{Confusion matrix for the ladder model with 100 labels}
 \end{figure}
 

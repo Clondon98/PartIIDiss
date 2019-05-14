@@ -361,6 +361,10 @@ while the actual model generalises poorly and is unusable.
 If the performance has improved, the state of the model is saved. After a certain number of epochs without the performance improving, 
 the training is stopped, and the best performing model state is loaded.
 
+\subsection{Chosen hyperparameters}
+
+All the models were implemented with early stopping. The simple MLP, SDAE and ladder were optimised over the number of layers in the classifier, using a constant layer size between the input and output size. M1 and M2 were optimised over the number of layers in the VAE, the number of layers in the classifier, and the size of the latent dimension.
+
 \section{Data processing}
 An important part of a machine learning project is the pre-processing of the data. This is used to ensure good model performance and 
 to partition the data to allow unbiased evaluation.
@@ -484,7 +488,7 @@ validation, or test data at some point.
 \begin{figure}[H]
   \centering
   \includegraphics[scale=0.6]{figs/test_val_split.pdf}
-  \caption{Splitting test set into a test and val set for hyperparameter optimisation}
+  \caption[Splitting $kth$ fold]{Splitting $kth$ fold into a test and val set for hyperparameter optimisation \\ (run once on top configuration and once on bottom)}
 \end{figure}
 
 \subsubsection{Labelled splits}

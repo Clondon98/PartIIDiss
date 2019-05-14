@@ -13,22 +13,20 @@ classifying tissues as cancerous and non-cancerous~\cite{Li2017}, predicting whe
 stomach cancer~\cite{helicobacter}, and diagnosing susceptibility to Crohn's disease and bipolar disorder~\cite{doi:10.1002/humu.23280}.
 In agriculture, it can be used to predict whether a crop will grow well under harsh conditions~\cite{cimmyt}.
 
-In this project I will attempt to classify into phenotypes based on gene expression data. Gene expression is the process of synthesising 
+This project attempted use gene expression data to classify by specific properties of the phenotype. Gene expression is the process of synthesising 
 proteins from the gene via RNA. A transcriptome is the set of all RNA 
 molecules in a cell or population of cells. While every cell with a nucleus in an organism has the same DNA and genes, the cells'
-functions differ, and this depends on which genes are being actively expressed. This means the
-transcriptome contains information from both genetic and epigenetic sources~\cite{Gibney2010}. Epigenetic differences are differences
+gene expression differs depending on the cell type and location. This means the
+transcriptome contains more than just genetic information, including information from epigenetic sources~\cite{Gibney2010}. Epigenetic differences are differences
 in the phenotype without alterations to the DNA (e.g. DNA methylation), and therefore gene expression data provides more information about 
 the phenotype than DNA sequencing.
 
-These classifications and predictions are typically computed using a supervised learning technique, which requires that all the 
-datapoints used in training be associated with a phenotype label. Biological labs worldwide perform transcriptome analysis, 
-generating gene expression data 
-which is available online. This, along with the development
-of RNA-Seq using next-generation sequencing means huge amounts of gene expression data are available for researchers. However,
-while many of the datasets generated in different experiments may include transcriptomes for the desired organism,
-most such experiments are measuring different phenotypes of the organism. This means that a 
-researcher wanting to analyse or predict a specific phenotype is therefore unable to use much of the available data.
+Supervised machine learning techniques for classification use many pairs of data (genome) with a label
+(property of phenome) to train a network, then apply that trained network to unknown data to make predictions. 
+There are huge amounts of gene expression data available online, as transcriptome analysis is performed in biological labs worldwide, 
+and the development of RNA-Seq using next-generation sequencing has made it even easier, but often the relevant l
+abel is not included (as it is either not measured or not uploaded). This gives researchers access to large 
+amounts of data that is unusable with supervised machine learning techniques.
 
 Semi-supervised learning attempts to leverage unlabelled data to improve the accuracy of the machine learning
 algorithm on a supervised task. Autoencoders have a long history of use in semi-supervised learning problems,
@@ -44,8 +42,15 @@ using neural networks. This is advantageous because neural networks work well on
 also able to effectively analyse data with high dimensionality (number of features). Transcriptomes can
 often contain several thousand genes, and so models must be able to cope with this level of dimensionality.
 
-This project is also the comparison between the semi-supervised models described in Section~\ref{ss_models} on genomic data, and is one of few
+This project is also the first comparison between the semi-supervised models described in Section~\ref{ss_models} on genomic data, and is one of only a few
 studies to have performed semi-supervised deep learning on genomic data.
+
+\begin{figure}[H]
+\centering\includegraphics[scale=.9]{figs/workflow.pdf}
+\caption{Project workflow}
+\label{fig:workflow}
+\end{figure}
+
 
 \section{Related work}
 

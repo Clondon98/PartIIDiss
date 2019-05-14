@@ -26,14 +26,15 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{dirtree}
-\usepackage{titlesec}
+\usepackage[compact]{titlesec}
 \usepackage{blindtext}
+\usepackage[export]{adjustbox}
 
-\fontdimen2\font=2.8pt
+\fontdimen2\font=3.1pt
 \setlength{\parskip}{0.4em}
 \titleformat{\chapter}[display]
-    {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
-\titlespacing*{\chapter}{0pt}{0pt}{40pt}
+    {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{10pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
 
 \addbibresource{references.bib}
 \usetikzlibrary{arrows,backgrounds}
@@ -93,8 +94,7 @@ unaided except as may be specified below, and that the dissertation
 does not contain material that has already been used to any substantial
 extent for a comparable purpose. 
 
-I, Charles London of Trinity College, 
-am content for my dissertation to be made available to the students and staff of the University.
+I am content for my dissertation to be made available to the students and staff of the University.
 
 \bigskip
 \leftline{Signed}
@@ -115,28 +115,22 @@ Project Originator: & Prof P.~Li\'o                   \\
 Supervisors:         & Prof P.~Li\'o \& Helena Andres Terre                   \\ 
 \end{tabular}
 }
-\footnotetext[1]{This word count was computed using TeXcount web service (https://app.uio.no/ifi/texcount/online.php)}
+\footnotetext[1]{This word count was computed using TeXcount web service \raggedright(https://app.uio.no/ifi/texcount/online.php)}
 \stepcounter{footnote}
 
 \section*{Original Aims of the Project}
 
 The original aim of this project was to use a combination of unsupervised and supervised learning 
-to train a model to predict the phenotype of an cell or group of cells using the genomic data.
+to train a model to predict the phenotype of a cell or group of cells using the genomic data.
 The aim was then to build a simple command line tool that would train a model for the user without requiring them 
 to know anything about machine learning.
 
 \section*{Work Completed}
 
 The project has compared semi-supervised learning methods, which combine supervised and unsupervised learning,
-to find which performed best on a gene expression dataset. Using the information discovered during this comparison
+to find which performed best on a gene expression dataset. Using the results of this comparison
 a simple command line tool was constructed that can be used to perform semi-supervised learning on genomic data.
-
 All that has been completed appears in this dissertation.
-
-\section*{Special Difficulties}
-
-Learning how to incorporate encapulated postscript into a \LaTeX\
-document on both Ubuntu Linux and OS X.
 
 \tableofcontents
 
@@ -144,6 +138,11 @@ document on both Ubuntu Linux and OS X.
 
 \newpage
 \section*{Acknowledgements}
+
+I would like to thank my supervisors Professor Pietro Li\'o and Helena Andres Terre for their help and guidance with both the project and the dissertations.
+
+I would also like to thank my DoS Professor Frank Stajano and Dr Sean Holden for their advice and feedback on my dissertation,
+and my father David and friend Dr John Cupitt for proofreading. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % now for the chapters

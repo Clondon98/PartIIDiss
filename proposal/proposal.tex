@@ -44,7 +44,7 @@ This project aims to build a tool that will provide these high accuracy predicti
 
 \subsection*{Prior Research}
 
-This project is based on similar state of the art work done in papers on DeepGS\cite{DeepGS} (genomic selection) and DeepMetabolism\cite{DeepMetabolism}.
+This project is based on similar state of the art work done in papers on DeepGS [1] (genomic selection) and DeepMetabolism [2].
 
 DeepGS was used to predict several phenotypes (grain length, grain hardness, plant height and more for wheat) when given genomic markers, and is now available as an R library. However the method  uses convolution and sampling to reduce data dimensionality, whereas the DeepMetabolism uses unsupervised pre-training in the form of an autoencoder to speed the supervised learning up. I believe that this is the better way to do it, and prescribes a less rigid structure on the model.
 
@@ -69,11 +69,11 @@ Data for training and testing the model will be both artificially generated as p
 \begin{itemize}
     \item Re-read papers on DeepGS and DeepMetabolism looking for particular insight into the exact models used to see ways they could be improved.
     
-    \item Deep learning to model the hierarchical structure of the cell[3] - this is less relevant to the project as it involves a neural network that is pre-structured by hand, but still involves genotype-phenotype prediction and so may contain useful insights.
+    \item Deep learning to model the hierarchical structure of the cell [3] - this is less relevant to the project as it involves a neural network that is pre-structured by hand, but still involves genotype-phenotype prediction and so may contain useful insights.
     
-    \item Principles of gene manipulation and genomics\cite{Genomics} Chapters 16 to 20 - a book about genome analysis, involving genomic and transcriptomic data. This is necessary because I have never worked on a project with large scale genome analysis before.
+    \item Principles of gene manipulation and genomics [4] Chapters 16 to 20 - a book about genome analysis, involving genomic and transcriptomic data. This is necessary because I have never worked on a project with large scale genome analysis before.
     
-    \item Reducing the dimensionality of data using neural networks\cite{Encoders} - information on reducing the dimensionality of data using autoencoders.
+    \item Reducing the dimensionality of data using neural networks [5] - information on reducing the dimensionality of data using autoencoders.
     
     \item Sparse autoencoders (lecture notes by Andrew Ng) - more information about using autoencoders to learn the most important features of data unsupervised.
     

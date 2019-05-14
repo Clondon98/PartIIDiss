@@ -250,7 +250,7 @@ They are based on Bayesian inference, and differ from other autoencoders in that
 the parameters of a probability distribution over the latent variables, rather than a single configuration.
 \begin{figure}[H]
   \begin{center}
-      \scalebox{.75}{\input{figs/vae.tex}}
+      \scalebox{.7}{\input{figs/vae.tex}}
       \caption{Illustration of a Gaussian variational autoencoder}
       \label{fig:gauss_vae}
   \end{center}
@@ -268,8 +268,7 @@ representation $\vec{z}$. The latent distribution describes the variation in the
 The prior $p(\vec{z})$ can be thought of as constraining the possible space of latent variables. In an unconstrained latent space, a
 normal autoencoder could place the same character written in different styles in different areas of n-dimensional Euclidean space (where n is the 
 dimensionality of $z$) as the latent representation is a vector of unconstrained real numbers. This is detrimental to learning a meaningful 
-latent space, and by constraining this space with a prior it should force the model to keep the representations of similar datapoints close
-~\cite{Tutorial70:online}.
+latent space, and by constraining this space with a prior it should force the model to keep the representations of similar datapoints close~\cite{Tutorial70:online}.
 
 The decoder of the VAE is a neural network that models the likelihood represented as $p_{\vec{\phi}}(\vec{x}|\vec{z})$. Once the VAE is 
 trained, new samples similar to 
