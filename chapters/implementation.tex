@@ -63,7 +63,7 @@ Each model has different fields dependent on their structure, so initialisation 
 However, for evaluation I implemented a \texttt{hyperparameter\_loop} method per model 
 which took the same arguments for all models:
 \begin{center}
-  \texttt{hyperparameter\_loop(fold, validation\_fold, state\_path, results\_path, dataset\_name, dataloaders, input\_size, num\_classes, max\_epochs, device)}
+  \texttt{hyperparameter\_loop(fold, validation\_fold, state\_path, results\_path, dataloaders, input\_size, num\_classes, max\_epochs, device)}
 \end{center}
 
 This method loops through a pre-selected set of hyperparameters to determine the best performing (Section ~\ref{hyper}).
