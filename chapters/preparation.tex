@@ -12,13 +12,13 @@ Autoencoder architectures are all based on \textbf{neural networks} so it is imp
 
 \subsection{The perceptron}
 
-The perceptron (or \textbf{artificial neuron}~\cite{WhatareA61:online}) is the basic element of the neural network. It takes in inputs $(x_1, ..., x_n)$ and 
+The perceptron (or \textbf{artificial neuron}) is the basic element of the neural network. It takes in inputs $(x_1, ..., x_n)$ and 
 multiplies these by \textbf{weights} $(w_1, ..., w_n)$, giving a linear combination of the inputs $x_1w_1 + ... + x_nw_n$, before applying 
 an \textbf{activation function} $\sigma$~\cite{Art_Int}.
 
 It is helpful to think of the inputs and weights as 
 vectors $\vec{x}$ and $\vec{w}$, giving the combination as $\vec{x} \cdot \ \vec{w}$. A \textbf{bias} term $x_0=1$ may also be included and multiplied by 
-weight $w_0$, giving $\vec{x} = [1, x_1, ..., x_n]$ and $\vec{w} = [w_0, w_1, ..., w_n]$. Intuitively the bias can be thought of as the intercept
+weight $w_0$, giving $\vec{x} = [1, x_1, ..., x_n]$ and $\vec{w} = [w_0, w_1, ..., w_n]$. The bias can be thought of as the intercept
 on a graph - if the neuron should have an output when all the inputs are zero it will be unable to model this correctly without a bias.
 
 The function computed by the neuron is then:
@@ -55,15 +55,15 @@ The reason for multi-layers neural networks is that they can model more \textbf{
 neurons and single-layer models are able to. Using non-linear activation functions such as ReLU \eqref{eq:relu} allow neurons to model simple 
 non-linear functions, and combining these into layers allows them to model these more complex non-linear relationships.
 
-I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the trainable parameters 
-(weights) of the neural network.
+I will denote the function computed by a neural network as $f_{\vec{\theta}}(\vec{x})$, where $\vec{\theta}$ denotes the
+weights of the neural network.
 
 \subsection{Neural networks for classification}
 
 A dataset for classification training is given as pairs of numerical \textbf{features} and a \textbf{label}: $(\vec{x}, y)$. These features are 
 the input to the network,
 and the label is the target. Labels cannot be directly utilised by a neural network as they operate on numerical data. Therefore it is 
-necessary to transform the data into a numerical representation.
+necessary to transform the labels into a numerical representation.
 
 \textbf{One-hot encoding} assigns an integer $i$ to each class and makes a vector of length $n$ (where $n$ is the 
 number of classes), setting the $ith$ element to one and all other elements to zero. E.g., with three classes
@@ -87,22 +87,21 @@ This is high when the probability of the correct label is low, because $\lim_{x 
 
 \subsection{Training the network} \label{train}
 
-Neural networks are randomly initialised and this means that on the first pass
-the output of the network will likely be very far from the correct value. Training a neural network involves adjusting its
-trainable parameters ($\vec{\theta}$) until the network reaches an acceptable loss or accuracy. This is done by computing 
-the gradients of the trainable parameters with respect to the loss, and updating the parameters to move the loss towards 
+Neural networks have their weights randomly initialised, and training a neural network involves adjusting them 
+($\vec{\theta}$) until the network reaches an acceptable loss or accuracy. This is done by computing 
+the gradients of the weights with respect to the loss, and updating the parameters to move the loss towards 
 a minimum.
 
 \subsubsection{Updating the weights}
 
 Forward propagation is the flow of information through the network from input features to output values. From these output values the loss is calculated. 
-The trainable parameters of a neural network can then be updated by first finding the gradient of the loss with respect to these trainable parameters.
+The weights of a neural network can then be updated by first finding the gradient of the loss with respect to these weights.
 The process of computing these gradients is called \textbf{backpropagation} and a full derivation can be found in Appendix~\ref{backprop}. The important notation is:
 
 \begin{itemize}
-  \item $\theta$ is a vector of all the trainable parameters in the network
+  \item $\theta$ is a vector of all the weights in the network
   \item $J(\vec{\theta})_k$ is the loss for the $kth$ sample in the training set
-  \item $\nabla_{\vec{\theta}} J(\vec{\theta})_k$ is a vector of gradients of the loss with respect to all the trainable parameters 
+  \item $\nabla_{\vec{\theta}} J(\vec{\theta})_k$ is a vector of gradients of the loss with respect to all the weights 
 \end{itemize}
 
 Once the gradients for all the weights have been calculated the weights are updated. By moving the weights incrementally in the direction of steepest 
@@ -116,7 +115,7 @@ better at modelling the training set. These incremental steps are called \textbf
 
 $\eta$ is a \textbf{hyperparameter}. Hyperparameters are parameters of the model that are not trained but are set by the user before training.
 $\eta$ is called the \textbf{learning rate} and controls the size of the step taken each time the weight is updated. If the learning rate is 
-too high the weights can ``jum'' over minima, and even diverge out of a minimum, but if the rate is too low it can take too long to converge,
+too high the weights can ``jump'' over minima, and even diverge out of a minimum, but if the rate is too low it can take too long to converge,
 or get stuck in a less desirable local minima. The step size is proportional to the magnitude of the gradient, allowing the optimizer to 
 take a larger step towards a minimum if the gradient is steeper.
 
@@ -198,16 +197,15 @@ random noise, suggesting that there is a lot of redundancy in the MNIST features
 
 This leads to \textbf{non-linear dimensionality-reduction} techniques. By finding this lower-dimensional
 manifold the data can be explained with fewer features and possibly be more easily separated and classified. Going back to the paper example,
-linear-dimensionality reduction techniques (e.g. principal component analysis) would be able to find the 2D embedding if the paper were 
-rotated, translated or stretched, but would be unable to unscrunch the paper, as that amounts to a non-linear embedding. Autoencoders are 
+linear-dimensionality reduction techniques would be able to find the 2D embedding if the paper were 
+rotated, translated or stretched, but would be unable to unscrunch the paper, as that is a non-linear transformation. Autoencoders are 
 used for non-linear dimensionality reduction, and are described in the next section.
 
 \section{Autoencoders}
 
-Autoencoders use neural networks in an unsupervised way to try and learn new \textbf{latent} representations of data, typically with reduced 
+Autoencoders use neural networks in an unsupervised way to learn new \textbf{latent} representations of data, typically with reduced 
 dimensionality (i.e. there are fewer features in the latent data than in the input data). The use of neural networks allow the autoencoder 
-to learn a 
-non-linear mapping from the data to the latent representation.
+to learn a non-linear mapping from the data to the latent representation.
 
 Autoencoders compromise an encoder and a decoder. The encoder takes in the original data, $\vec{x}$, 
 and outputs a latent representation, $\vec{z} = f_{\vec{\theta}}(\vec{x})$. The decoder then takes this latent representation and 
@@ -237,8 +235,8 @@ same time; the gradients are backpropagated through the decoder to the latent la
 
 \subsection{Denoising autoencoders}
 
-Denoising autoencoders corrupt the input data with noise (e.g. by adding Gaussian noise or setting some of
-the features to 0) giving $\tilde{\vec{x}}$, which is then used as the input to the network. However, the target is the uncorrupted input data, 
+Denoising autoencoders corrupt the input data with noise (e.g. by adding Gaussian noise) giving $\tilde{\vec{x}}$, which is then used as the 
+input to the network. However, the target is the uncorrupted input data, 
 $\vec{x}$. The aim is to force the autoencoder to learn a better set of features because it not only has to reconstruct the data but also 
 has to remove the noise. They can be trained in the same way as a simple autoencoder.
 
@@ -329,7 +327,7 @@ An explanation can be found in Appendix ~\ref{reparam}.
 Semi-supervised learning involves leveraging large amounts of unlabelled data to increase model performance on supervised learning tasks. 
 In most fields, unlabelled data is much easier to obtain than labelled data. I noted in the Introduction that wealth of gene 
 expression data for many different organisms is available online, albeit that the phenotype a researcher wants 
-to study is often not included. With standard supervised learning this data is not usable, but semi-supervised learning
+to study is often not included. With standard supervised learning this data is unusable, but semi-supervised learning
 can use it to improve performance. 
 
 \subsection{Dimensionality reduction (M1)} \label{m1}
@@ -462,13 +460,13 @@ and decoder. The final classifier is the encoder.
 
 The ladder network is a hierarchical latent variable model, which differ from the latent variable models
 looked at so far in that it attempts to represent the data using multiple layers of latent variables, rather than a 
-single layer of latent variables. 
+single layer. 
 In the normal autoencoder or VAE the single latent layer $z$ has to encode everything about the data $x$, otherwise the reconstruction it generates 
 will be very poor. With a hierarchical model each layer models only some information about $x$, with the higher layers able to be 
 more abstract, 
 as they don't have to model the details encoded in the lower layers. 
 
-For example, using MNIST, $z$ in a simple
+For example, using MNIST, $z$ in an
 autoencoder cannot just be the digit label as this does not provide enough information to reconstruct the original image well. 
 In a hierarchical latent variable model the highest
 level latent variable is able to be very abstract and only encode the label, as the other layers in the model provide less abstract 
@@ -484,7 +482,7 @@ further into the network modelling more complicated and abstract features, and w
 
 The way these lateral connections work is that
 at the input to each decoder layer $u^{(l)}$ the corresponding encoder representation $z^{(l)}$ and the output of the previous decoder layer $u^{(l+1)}$ are combined
-using a combinator function $g$. $g$ has trainable parameters, but this leads to a problem where the lowest possible unsupervised loss can be 
+using a combinator function $g$. $g$ has trainable parameters (weights), but this leads to a problem where the lowest possible unsupervised loss can be 
 achieved by $g$ in the first layer learning to copy $z^{(0)}$ and completely ignoring the $u^{(l+1)}$, which corresponds to copying the input directly to the output at the bottom layer.
 This short circuits the autoencoder, and in order to prevent this, Gaussian noise (sampled from $\mathcal{N}(0, 1)$) is added to the input to each layer 
 in the encoder. Each encoder layer then has the representation $\tilde{z}^{(l)}$ and this noise means that just copying over the input no longer minimises the loss function. 
@@ -584,7 +582,7 @@ PyCharm includes useful features like autocomplete, and has good integration wit
 \subsection{Hardware}
 All of the coding was done on my laptop (2.6 GHz Intel Core i5, 8GB RAM, 128GB SSD).
 
-Running the models, especially on the highly dimensional gene expression data, is extremely computationally intensive, and runs much 
+The model are computationally intensive, and run much 
 quicker on a GPU. To this end I was given access to NVIDIA P100 GPUs on the Cambridge HPC by Prof. Li\'o.
 
 \subsection{Backing up}

@@ -9,16 +9,15 @@ the Cancer Genome Atlas expression data.}
 \section{Motivation}
 
 Classifying organisms into phenotypes using genomic data is important in both medicine and agriculture. In medicine, uses include 
-classifying tissues as cancerous and non-cancerous~\cite{Li2017}, predicting whether a strain of \textit{Helicobacter pylori} will lead to 
-stomach cancer~\cite{helicobacter}, and diagnosing susceptibility to Crohn's disease and bipolar disorder~\cite{doi:10.1002/humu.23280}.
+classifying tissues as cancerous and non-cancerous~\cite{Li2017} and diagnosing susceptibility to Crohn's disease~\cite{doi:10.1002/humu.23280}.
 In agriculture, it can be used to predict whether a crop will grow well under harsh conditions~\cite{cimmyt}.
 
-This project attempted use gene expression data to classify cells (or group of cells) by specific properties of the phenotype. Gene expression is the process of synthesising 
+This project used gene expression data to classify cells by specific properties of the phenotype. Gene expression is the process of synthesising 
 proteins from the gene via RNA. A transcriptome is the set of all RNA 
 molecules in a cell or population of cells. While every cell with a nucleus in an organism has the same DNA and genes, the cells'
 gene expression differs depending on the cell type and location. This means the
 transcriptome contains more than just genetic information, including information from epigenetic sources~\cite{Gibney2010}. Epigenetic differences are differences
-in the phenotype without alterations to the DNA (e.g. DNA methylation), and therefore gene expression data provides more information about 
+in the phenotype without alterations to the DNA and therefore gene expression data provides more information about 
 the phenotype than DNA sequencing.
 
 Supervised machine learning techniques for classification use many pairs of data (genome) with a label

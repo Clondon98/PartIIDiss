@@ -9,9 +9,7 @@ This section also covers the tuning of the model hyperparameters, and the subseq
 
 \subsection{PyTorch data structures}
 The most important computational unit in PyTorch is the \textbf{tensor}. Tensors are similar to multidimensional arrays, but they are able to 
-utilise GPUs to perform operations in parallel. This is important because the running of a neural network involves thousands of matrix 
-operations, many of which can be performed in parallel. GPUs have high memory bandwidth and are 
-optimised to perform simple operations in parallel, making them ideal for machine learning applications.
+utilise GPUs to perform operations in parallel.
 
 Tensors have the property \texttt{requires\_grad} which tells PyTorch whether to record the operations that happen to the tensor. If 
 \texttt{requires\_grad=True} the tensor records all operations on it, and builds up a \textbf{computation graph}. The computation graph is a 
@@ -23,9 +21,9 @@ backwards pass on the graph to compute the gradients.
 \texttt{Parameters} are tensors that hold the weights and biases of the network. The parameter class is a 
 wrapper that tells a \textbf{module} whether to include a tensor in the parameters object of the module.
 
-\texttt{Modules} are the base class for all models in PyTorch, and are combinations of parameters and functions that will be applied to input 
+\texttt{Modules} are the base class for all models in PyTorch, and are combinations of parameters and functions that are applied to input 
 data when the \texttt{forward} method of the module is called. All models subclass \texttt{nn.Module} and these modules can be nested
-to allow more complicated models to be constructed from basic constituent parts. For example the \texttt{nn.Linear} module contains 
+to allow more complicated models to be constructed from basic constituent parts. The \texttt{nn.Linear} module contains 
 weight and bias parameters, and multiplies the input data by the weights and adds the bias in the forward method.
 
 \subsection{My base modules}
@@ -49,7 +47,7 @@ It also contains a function that samples from these distributions to create the 
 
 \subsection{Class structure}
 
-The models used in this project all required certain methods to allow the scripts used for running and evaluation to be as 
+The models used in this project all need the same methods to allow the scripts used for running and evaluation to be as 
 model-agnostic as possible. Therefore I implemented a base class \texttt{Model} for all the models to ensure they all had the same methods.
 \texttt{Model} also subclassed \texttt{nn.Module} to ensure that the models adhered to PyTorch standards.
 \begin{figure}[H]
@@ -210,18 +208,18 @@ Kingma's implementation (available at: \url{https://github.com/dpkingma/nips14-s
 model I followed. 
 
 A helpful reference implementation I found is available at \url{https://github.com/wohlert/semi-supervised-pytorch}, but I believe my implementation is 
-easier to read and also performs better, as I use the inbuilt PyTorch models for computing the cross entropy loss and use the Kingma way 
+easier to read and performs better, as I use the inbuilt PyTorch models for computing the cross entropy loss and use the Kingma way 
 of computing the KLD~\cite{DBLP:journals/corr/KingmaW13}. I was able to contribute to the repository, finding a bug in the 
-variational autoencoder code where the natural logarithm of the variance was restricted to values greater than zero (this is incorrect).
+code where the natural logarithm of the variance was restricted to values greater than zero (this is incorrect).
 
-M2 again requires that the data be normalised to the range [0-1] (as in M1) as otherwise the loss explodes and becomes 
-\texttt{nan} as the variance of the latent distribution becomes very small.
+M2 again requires that the data be normalised to the range [0-1] as otherwise the loss explodes and becomes 
+\texttt{nan} as the variance of the latent distribution becomes infintesimal.
 
 Once the model is trained the only part used in classification is the Classifier.
 
 \subsection{Ladder} \label{ladder_imp}
 
-The ladder network doesn't make use of any of the base modules, as it requires a lot of extra parts. My original implementation 
+The ladder network doesn't make use of the base modules, as it requires a lot of extra parts. My original implementation 
 was based on an implementation found at \url{https://github.com/abhiskk/ladder}. However, this implementation is very slow, as at one point 
 tensors on the GPU are unnecessarily shifted onto the CPU to perform operations. The implementation also did 
 not achieve the desired accuracy on MNIST. For this reason I instead based my implementation on a Tensorflow implementation written by 
@@ -293,11 +291,11 @@ For the most part this was implemented without difficulty, though I did discover
 By adding a backward hook to the model that notified me when the values became \texttt{nan}, I discovered that this was because 
 the ladder requires the data be standardised (Section~\ref{normalise}), which involves dividing the features in the data by the standard deviation of the 
 features. However, in the MNIST dataset the pixels on the edge of the images are always black, and so have a constant value of zero over 
-all the images. The standard deviation of these features is therefore also zero, and dividing by this leads to data becoming \texttt{nan}.
+all the images. The standard deviation of these features is therefore zero, and dividing by this leads to data becoming \texttt{nan}.
 This can be fixed by adding a small positive value to the denominator when standardising.
 
 \section{Hyperparameter optimisation} \label{hyper}
-While the weights and biases in a network can be trained by backpropagation, there are parameters of the model that cannot be trained in 
+While the weights in a network can be trained by backpropagation, there are parameters of the model that cannot be trained in 
 this way, but still affect the performance of the network. These are hyperparameters and they are set before the training begins. 
 Optimising these can be crucial in optimising a model's performance.
 
@@ -307,7 +305,7 @@ likely values for the hyperparameters, and the model is trained with each combin
 performance of the models, and the best set of hyperparameters is selected in this way.
 
 However, optimising hyperparameters this way results in every combination having to be run again for each additional value of each
-hyperparameter used. Depending on how long it takes each model to train, this can significantly prolong training time. 
+hyperparameter. This can significantly prolong training time. 
 Therefore, I chose to optimise over a small number of hyperparameters that I felt were most likely to affect the performance of the models.
 
 \subsection{Number of hidden layers}
@@ -333,7 +331,7 @@ comparison.
 \subsection{Latent dimension of autoencoders}
 The size of the latent dimension for an autoencoder affects the quality of the representation learned. If the dimension is too small the 
 autoencoder may not be able to encode all the important features, whereas a latent dimension that is too large can give the autoencoder 
-too much freedom, causing it to not cluster important samples together.
+too much freedom, causing it to not cluster similar samples together.
 
 This hyperparameter is only optimisable for the M1 and M2 models, as the hidden dimensions for the autoencoder in the SDAE and ladder 
 are controlled by the layer size and number of classes.
@@ -341,9 +339,7 @@ are controlled by the layer size and number of classes.
 \subsection{Learning rate}
 The learning rate is a hyperparameter that controls how large a step is taken each time the weights are updated. It is an often
 optimised hyperparameter because if it is too large it can overshoot loss minima, resulting in worse performance, and if it is too 
-small it can take a very long time for the gradient descent to converge. However, 
-
-I chose not to search over different learning 
+small it can take a very long time for the gradient descent to converge. However,vI chose not to search over different learning 
 rates because of the additional time it would take, and because I used the \textbf{Adam optimizer}. The Adam optimizer keeps a 
 learning rate per parameter, and updates these learning rates with respect to each 
 parameter~\cite{DBLP:journals/corr/KingmaB14}. This means that while an initial learning rate still has to be provided, it affects the 
@@ -352,10 +348,10 @@ performance much less.
 \subsection{Early stopping}
 The number of epochs that a learning algorithm is trained for also affects how well it performs. Not training for long enough can result in
 poor peformance and underfitting, as the model has not had enough time to learn the relevant features. Conversely training for too long can
-be waste compute time or even lead to overfitting.
+waste compute time or even lead to overfitting.
 
 Luckily, this is one of the easiest hyperparameters to optimise, and does not have to be included in a grid search. 
-By using a validation set that the network is not trained on, the performance of each model on unseen data can be measured after 
+By using a validation set that the network is not trained on, the performance on unseen data can be measured after 
 every epoch. Unseen data is necessary because evaluating a model on training data will give overfitted models excellent performance, 
 while the actual model generalises poorly and is unusable.
 If the performance has improved, the state of the model is saved. After a certain number of epochs without the performance improving, 
@@ -363,7 +359,9 @@ the training is stopped, and the best performing model state is loaded.
 
 \subsection{Chosen hyperparameters}
 
-All the models were implemented with early stopping. The simple MLP, SDAE and ladder were optimised over the number of layers in the classifier, using a constant layer size between the input and output size. M1 and M2 were optimised over the number of layers in the VAE, the number of layers in the classifier, and the size of the latent dimension.
+All the models were implemented with early stopping. The simple MLP, SDAE and ladder were optimised over the number of layers in the classifier, 
+using a constant layer size between the input and output size. M1 and M2 were optimised over the number of layers in the VAE, the 
+number of layers in the classifier, and the size of the latent dimension.
 
 \section{Data processing}
 An important part of a machine learning project is the pre-processing of the data. This is used to ensure good model performance and 
@@ -480,7 +478,7 @@ iterations, and is potentially very time-consuming. It also means that there is 
 for the final computation of the model. As I am using early stopping, a validation set is always required because the number of epochs 
 to train to get best performance can be quite variable and depend on the model weight initialisation.
 
-Therefore I instead partitioned the $kth$ fold, into a validation set and a test set. The hyperparameters are optimised using the 
+Therefore I instead partitioned the $kth$ fold into a validation set and a test set. The hyperparameters are optimised using the 
 validation set, and the performance of each model is compared. The best-performing model is then run on the test set and the acccuracy
 recorded. The test and validation sets are then swapped and optimisation is performed again. This reduces the number of iterations to
 $2nk$ and also ensures that there is always a validation set to perform early stopping, while still using all the available data as train, 
@@ -498,16 +496,15 @@ labelled data. For each number of labelled samples ($n$) used, I selected $n$ sa
 labelled dataset. The unlabelled dataset was then all the remaining samples in the train set.
 
 \subsubsection{Parallelisation}
-While cross-validation reduces the number of iterations to a more manageable size, even a model with a fairly short 
-training time will take a long time to complete the evaluation. Therefore I computed the indices of test/val/train and labelled 
-splits I would use in advance, and serialised these using \texttt{pickle} \footnote{\texttt{pickle} is the most popular Python library 
-for serialisation}. This allows all the models to use the same folds, allowing
-for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold. The Cambridge High Performance
+While the cross-validation changes have reduced the number of iterations to a more manageable size, training and evaluation can still take a long time 
+to complete. Therefore I computed the indices of test/val/train and labelled 
+splits I would use in advance, and serialised them. This allows all the models to use the same folds, allowing
+for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold at a time. The Cambridge High Performance
 Cluster has 90 GPUs, and so running many smaller jobs in parallel gives a much quicker finish time than running several larger jobs.
 I wrote several \texttt{bash} scripts to schedule slurm jobs for each model, number of labelled examples and fold. 
 
 \section{Saliency} \label{saliency}
-Neural networks are a black box, giving no indication to the programmer or user of what the network is doing, and what it deems 
+Neural networks are a black box, giving no indication to the user of what the network deems 
 to be important. One way of extracting that is through saliency maps (first introduced in~\cite{DBLP:journals/corr/SimonyanVZ13}), 
 which intend to give the user some idea of which inputs 
 are the most important in determining the output class. This is done by computing the partial derivatives of the input data 
@@ -516,7 +513,7 @@ should be larger for inputs that are more important to determining the class. A 
 the value of that input makes the class more likely; and a large negative partial derivative means increasing that input decreases the 
 likelihood of that class.
 
-A variant of this uses guided backpropagation~\cite{DBLP:journals/corr/SpringenbergDBR14}, a variant of backpropagation where the 
+A variant of this uses guided backpropagation~\cite{DBLP:journals/corr/SpringenbergDBR14}, backpropagation where the 
 gradient is only backpropagated through a ReLU if the error gradient is greater than zero. When used to construct saliency maps for 
 images it has been shown to make much clearer images, and highlight better the features the network thinks are important.
 
