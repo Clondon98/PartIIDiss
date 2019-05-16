@@ -43,6 +43,7 @@
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{arrows}
 \usetikzlibrary{backgrounds}
+\usetikzlibrary{fit}
 \usetikzlibrary{matrix}
 \tikzstyle{place}=[circle, draw=black, minimum size = 8mm]
 \tikzset{>=latex}
@@ -73,10 +74,10 @@
 \vspace*{60mm}
 \begin{center}
 \Huge
-\textbf{A tool for prediction of phenotype from cell genotype} \\[5mm]
+\textbf{A tool for phenotype prediction from cell genotype} \\[5mm]
 Computer Science Tripos -- Part II \\[5mm]
 Trinity College \\[5mm]
-\today  % today's date
+2019 % today's date
 \end{center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,9 +105,9 @@ I am content for my dissertation to be made available to the students and staff 
 
 \section*{Acknowledgements}
 
-I would like to thank my supervisors Professor Pietro Li\'o and Helena Andres Terre for their help and guidance with both the project and the dissertations.
+I would like to thank my supervisors Professor Pietro Li\'o and Helena Andres Terre for their help and guidance with both the project and the dissertation.
 
-I would also like to thank my Directors of Studies Professor Frank Stajano and Dr Sean Holden for their advice and feedback on my dissertation,
+I would also like to thank my Directors of Studies Professor Frank Stajano and Dr Sean Holden for their advice and feedback,
 and my father David London and friend Dr John Cupitt for proofreading. 
 
 \chapter*{Proforma}
@@ -129,8 +130,8 @@ Supervisors:         & Prof P.~Li\'o \& Helena Andres Terre                   \\
 \section*{Original Aims of the Project}
 
 The original aim of this project was to use a combination of unsupervised and supervised learning 
-to train a model to predict the phenotype of a cell or group of cells using the genomic data.
-The aim was then to build a simple command line tool that would train a model for the user without requiring them 
+to train a model to predict the phenotype of a cell or group of cells using genomic data.
+The aim was then to build a simple tool that would train a model for a user without requiring them 
 to know anything about machine learning.
 
 \section*{Work Completed}
@@ -138,6 +139,8 @@ to know anything about machine learning.
 The project has compared semi-supervised learning methods, which combine supervised and unsupervised learning,
 to find which performed best on a gene expression dataset. Using the results of this comparison
 a simple command line tool was constructed that can be used to perform semi-supervised learning on genomic data.
+This project has also resulted in a PyTorch semi-supervised learning repository publicly available online and a 
+methodology for evaluating these models.
 All that has been completed appears in this dissertation.
 
 \tableofcontents

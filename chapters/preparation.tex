@@ -346,6 +346,13 @@ passing it through the autoencoder and attempting to reconstruct the clean input
 the autoencoder only (no other layers of the deep network) and the weights are updated. The loss computed by the autoencoder is referred to 
 as an unsupervised ``local denoising criterion''~\cite{Vincent:2010:SDA:1756006.1953039} as it does not require a label and is computed only 
 for one layer at a time rather than the whole network.
+\begin{figure}[H]
+  \begin{center}
+      \scalebox{.75}{\input{figs/sdae.tex}}
+      \caption{Training the second layer of a stacked denoising autoencoder}
+      \label{fig:illustration_sdae}
+  \end{center}
+\end{figure}
 
 The network is trained one layer at a time, beginning with the first hidden layer. Once the reconstruction loss for the denoising autoencoder has 
 converged for the layer, the decoder is discarded, and the next layer is trained in the same way, using the output of the previously trained

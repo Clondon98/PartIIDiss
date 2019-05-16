@@ -20,12 +20,12 @@ implemented correctly. All the models are now available online at \url{https://g
 best performing PyTorch implementation of the semi-supervised VAE and ladder that I was able to find online. This repository also allows 
 the models to be easily used on different datasets, while other implementations are restricted to MNIST. 
 
-The M2 and ladder model also succeeded in achieving statistically significant performance improvements over the fully supervised model on 
-gene expression data, and an average of both of the models achieved even higher performance. This led to the development of a 
+The M2 and ladder models also succeeded in achieving statistically significant performance improvements over the fully supervised model on 
+gene expression data, and an ensemble of both of them achieved even higher performance. This led to the development of a 
 command line tool that can be trained and used for classification very simply, with no need for knowledge of machine learning techniques.
 
 I also managed to implement an extension that calculated the saliency of inputs to the network, and while I ran out of time to include it 
-in the tool, the results on MNIST showed that it was locating important features for the classification of the characters.
+in the tool, the results on MNIST show that saliency maps can be used to calculate and visualise feature importance.
 
 \section{Further Work}
 
