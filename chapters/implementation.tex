@@ -47,7 +47,7 @@ It also contains a function that samples from these distributions to create the 
 
 \subsection{Class structure}
 
-The models used in this project all need the same methods to allow the scripts used for running and evaluation to be as 
+The models used in this project all require the same methods to allow the scripts used for running and evaluation to be as 
 model-agnostic as possible. Therefore I implemented a base class \texttt{Model} for all the models to ensure they all had the same methods.
 \texttt{Model} also subclassed \texttt{nn.Module} to ensure that the models adhered to PyTorch standards.
 \begin{figure}[H]
@@ -213,7 +213,7 @@ of computing the KLD~\cite{DBLP:journals/corr/KingmaW13}. I was able to contribu
 code where the natural logarithm of the variance was restricted to values greater than zero (this is incorrect).
 
 M2 again requires that the data be normalised to the range [0-1] as otherwise the loss explodes and becomes 
-\texttt{nan} as the variance of the latent distribution becomes infintesimal.
+\texttt{nan} as the variance of the latent distribution becomes infinitesimal.
 
 Once the model is trained the only part used in classification is the Classifier.
 
@@ -499,8 +499,8 @@ labelled dataset. The unlabelled dataset was then all the remaining samples in t
 While the cross-validation changes have reduced the number of iterations to a more manageable size, training and evaluation can still take a long time 
 to complete. Therefore I computed the indices of test/val/train and labelled 
 splits I would use in advance, and serialised them. This allows all the models to use the same folds, allowing
-for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold at a time. The Cambridge High Performance
-Cluster has 90 GPUs, and so running many smaller jobs in parallel gives a much quicker finish time than running several larger jobs.
+for a fair comparison. It also allows each script to run hyperparameter optimisation over only one fold at a time. The Cambridge HPC 
+has 90 GPUs, and so running many smaller jobs in parallel gives a much quicker finish time than running several larger jobs.
 I wrote several \texttt{bash} scripts to schedule slurm jobs for each model, number of labelled examples and fold. 
 
 \section{Saliency} \label{saliency}

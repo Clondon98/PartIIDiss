@@ -44,7 +44,7 @@ output value $y$ for the neuron. This value is then used as an input to the next
 the output layer.
 \begin{figure}[H]
   \begin{center}
-      \scalebox{.65}{\input{figs/nn.tex}}
+      \scalebox{.75}{\input{figs/nn.tex}}
       \caption{Illustration of a 4-layer multilayer perceptron}
       \label{fig:illustration_deep_network}
   \end{center}
@@ -170,7 +170,7 @@ it now has a three dimensional shape, but the data still lies on a two-dimension
 be described with only two features.
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=.5]{figs/manifold.png}
+  \includegraphics[scale=.75]{figs/manifold.png}
   \caption{Points on a 2-dimensional manifold embedded in 3-dimensional space}
   \label{fig:manifold}
 \end{figure}
@@ -213,7 +213,7 @@ attempts to reconstruct $\vec{x}$, outputting $\vec{\hat{x}} = h_{\vec{\phi}}(\v
 into a supervised problem, using $\vec{x}$ as the target.
 \begin{figure}[H]
   \begin{center}
-      \scalebox{.6}{\input{figs/autoencoder.tex}}
+      \scalebox{.75}{\input{figs/autoencoder.tex}}
       \caption{Illustration of a simple autoencoder}
       \label{fig:illustration_autoencoder}
   \end{center}
@@ -243,12 +243,12 @@ has to remove the noise. They can be trained in the same way as a simple autoenc
 \subsection{Variational autoencoders} \label{vae}
 
 Variational autoencoders were 
-introduced by Kingma and Welling in 2013 and have become one of the most popular unsupervised learning techniques. 
+introduced by Kingma and Welling in 2013~\cite{DBLP:journals/corr/KingmaW13} and have become one of the most popular unsupervised learning techniques. 
 They are based on Bayesian inference, and differ from other autoencoders in that the encoder outputs
 the parameters of a probability distribution over the latent variables, rather than a single configuration.
 \begin{figure}[H]
   \begin{center}
-      \scalebox{.7}{\input{figs/vae.tex}}
+      \scalebox{.75}{\input{figs/vae.tex}}
       \caption{Illustration of a Gaussian variational autoencoder}
       \label{fig:gauss_vae}
   \end{center}
@@ -369,15 +369,14 @@ what digit the character is, while $\vec{z}$ encodes the style. The generative m
 categorical distribution $p(y)$ and by sampling $\vec{z}$ from a continuous distribution $p(\vec{z})$ (usually a Gaussian), before computing 
 $p(\vec{x}|y, \vec{z})$ using a neural network $p_{\vec{\phi}}(\vec{x}|y, \vec{z})$.
 \begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.4\linewidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \centering
-    \scalebox{.75}{\input{figs/generative.tex}}
+    \scalebox{.9}{\input{figs/generative.tex}}
     \caption{The generative model}
   \end{subfigure}
-  \begin{subfigure}[b]{0.4\linewidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \centering
-    \scalebox{.75}{\input{figs/inference.tex}}
+    \scalebox{.9}{\input{figs/inference.tex}}
     \caption{The inference model}
   \end{subfigure}
   \caption[Semi-supervised VAE]{The semi-supervised VAE \\ (shading indicates that a variable in the dataset is observed)}
@@ -453,7 +452,7 @@ and decoder. The final classifier is the encoder.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=0.25]{figs/ladder.png}
+  \includegraphics[scale=0.4]{figs/ladder.png}
   \caption[Illustration of the ladder network]{Illustration of the ladder network \\ (Source: Rasmus et al.~\cite{DBLP:journals/corr/RasmusVHBR15})}
   \label{fig:ladder}
 \end{figure}
@@ -461,12 +460,12 @@ and decoder. The final classifier is the encoder.
 The ladder network is a hierarchical latent variable model, which differ from the latent variable models
 looked at so far in that it attempts to represent the data using multiple layers of latent variables, rather than a 
 single layer. 
-In the normal autoencoder or VAE the single latent layer $z$ has to encode everything about the data $x$, otherwise the reconstruction it generates 
-will be very poor. With a hierarchical model each layer models only some information about $x$, with the higher layers able to be 
+In the normal autoencoder or VAE the single latent layer $\vec{z}$ has to encode everything about the data $\vec{x}$, otherwise the reconstruction it generates 
+will be very poor. With a hierarchical model each layer models only some information about $\vec{x}$, with the higher layers able to be 
 more abstract, 
 as they don't have to model the details encoded in the lower layers. 
 
-For example, using MNIST, $z$ in an
+For example, using MNIST, $\vec{z}$ in an
 autoencoder cannot just be the digit label as this does not provide enough information to reconstruct the original image well. 
 In a hierarchical latent variable model the highest
 level latent variable is able to be very abstract and only encode the label, as the other layers in the model provide less abstract 
@@ -481,18 +480,18 @@ This structure, with the representation becoming more abstract in higher level l
 further into the network modelling more complicated and abstract features, and with the final layer just outputting a class label.
 
 The way these lateral connections work is that
-at the input to each decoder layer $u^{(l)}$ the corresponding encoder representation $z^{(l)}$ and the output of the previous decoder layer $u^{(l+1)}$ are combined
+at the input to each decoder layer $\vec{u}^{(l)}$ the corresponding encoder representation $\vec{z}^{(l)}$ and the output of the previous decoder layer $\vec{u}^{(l+1)}$ are combined
 using a combinator function $g$. $g$ has trainable parameters (weights), but this leads to a problem where the lowest possible unsupervised loss can be 
-achieved by $g$ in the first layer learning to copy $z^{(0)}$ and completely ignoring the $u^{(l+1)}$, which corresponds to copying the input directly to the output at the bottom layer.
+achieved by $g$ in the first layer learning to copy $\vec{z}^{(0)}$ and completely ignoring $\vec{u}^{(l+1)}$, which corresponds to copying the input directly to the output at the bottom layer.
 This short circuits the autoencoder, and in order to prevent this, Gaussian noise (sampled from $\mathcal{N}(0, 1)$) is added to the input to each layer 
-in the encoder. Each encoder layer then has the representation $\tilde{z}^{(l)}$ and this noise means that just copying over the input no longer minimises the loss function. 
+in the encoder. Each encoder layer then has the representation $\vec{\tilde{z}}^{(l)}$ and this noise means that just copying over the input no longer minimises the loss function. 
 
-However, if the unsupervised loss function used is simply the reconstruction loss between the decoder output $\hat{x}$ and the encoder input $x$, the first layer of 
+However, if the unsupervised loss function used is simply the reconstruction loss between the decoder output $\vec{\hat{x}}$ and the encoder input $\vec{x}$, the first layer of 
 the network still has a disproportionate
 influence on the loss. In order to remedy this Valpola proposes adding a local denoising criterion. This involves adding a cost function at each layer of the decoder,
-namely the reconstruction loss between $g(\tilde{z}^{(l)}, u^{(l+1)})$ (which is $\hat{z}^{(l)}$, a denoised representation of $\tilde{z}^{(l)}$) and $z^{(l)}$, the clean 
+namely the reconstruction loss between $g(\vec{\tilde{z}}^{(l)}, \vec{u}^{(l+1)})$ (which is $\vec{\hat{z}}^{(l)}$, a denoised representation of $\vec{\tilde{z}}^{(l)}$) and $\vec{z}^{(l)}$, the clean 
 representation from layer $l$ of the encoder. In order to generate both the clean and noisy encoder representations, the encoder is run twice per training iteration,
-once without the added noise to generate $z^{(l)}$, and once with noise to generate $\tilde{z}^{(l)}$. These local cost functions require all the layers to learn in order
+once without the added noise to generate $\vec{z}^{(l)}$, and once with noise to generate $\vec{\tilde{z}}^{(l)}$. These local cost functions require all the layers to learn in order
 to make a meaningful representation that can be denoised well. Each layer loss is multiplied by a hyperparameter $\lambda_{l}$ according to how important the denoising cost
 of the layer is, before being summed together to give a final unsupervised cost function per sample of:
 
@@ -582,7 +581,7 @@ PyCharm includes useful features like autocomplete, and has good integration wit
 \subsection{Hardware}
 All of the coding was done on my laptop (2.6 GHz Intel Core i5, 8GB RAM, 128GB SSD).
 
-The model are computationally intensive, and run much 
+The models are computationally intensive, and run much 
 quicker on a GPU. To this end I was given access to NVIDIA P100 GPUs on the Cambridge HPC by Prof. Li\'o.
 
 \subsection{Backing up}
