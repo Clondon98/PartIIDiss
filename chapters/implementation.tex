@@ -56,11 +56,10 @@ model-agnostic as possible. Therefore I implemented a base class \texttt{Model} 
   \caption{Model base class}
 \end{figure}
 
-The \texttt{dataset\_name} field is used to save the model state in the correct place when using early stopping, and the \texttt{device} field is 
-used to ensure that GPUs are used if available. Not placing the tensors on the correct device 
-leads to errors.
+The \texttt{state\_path} field is used to save the model state in the correct place when using early stopping, and the \texttt{device} field is 
+used to ensure that GPUs are used if available.
 
-Each model has different fields depending on the structure of the model, so initialisation of the models could not be a general method. 
+Each model has different fields dependent on their structure, so initialisation of the models could not be a general method. 
 However, for evaluation I implemented a \texttt{hyperparameter\_loop} method per model 
 which took the same arguments for all models:
 \begin{center}
@@ -75,7 +74,7 @@ All the models were trained using mini-batch gradient descent, as described in S
 
 \subsection{Multilayer perceptron}
 The multilayer perceptron is a fully supervised model implemented to compare the performance between a fully supervised approach and the 
-semi-supervised approaches used in the project. The model simply uses the Classifier base module and trains it on only the labelled data
+semi-supervised approaches used. The model simply uses the Classifier base module and trains it on only the labelled data
 using cross entropy loss~\eqref{eq:ce}.
 
 \subsection{M1}
@@ -329,7 +328,7 @@ I use a constant layer size for all the hidden layers, and for all the different
 comparison.
 
 \subsection{Latent dimension of autoencoders}
-The size of the latent dimension for an autoencoder affects the quality of the representation learned. If the dimension is too small the 
+The size of the latent dimension of an autoencoder affects the quality of the representation learned. If the dimension is too small the 
 autoencoder may not be able to encode all the important features, whereas a latent dimension that is too large can give the autoencoder 
 too much freedom, causing it to not cluster similar samples together.
 

@@ -79,7 +79,7 @@ it into an 8 or possibly a 4. In this way these maps allow a user to understand 
 
 \subsection{Missing data} \label{imputation}
 
-As some of the samples in the TCGA dataset are missing expression levels for certain genes I compared the results (using an MLP 
+As some of the samples in the TCGA dataset are missing expression levels for certain genes, I compared the results (using an MLP 
 and all of the data as labelled data) of three different techniques for removing the missing values. The first technique was to just drop
 all the columns of genes with any missing values, reducing the number of genes from 20,350 to 16,334. The second technique involved 
 replacing all the missing values with zero, and the third involved replacing them with the mean of the expression 
@@ -110,10 +110,10 @@ Computing a paired t-test helps discern if any one method could be considered be
   1.723 & 0.543 & -1.753 \\
   \bottomrule[\heavyrulewidth] 
   \end{tabular}
-  \caption{t statistics for difference between imputation folds} 
+  \caption{t-statistics for difference between imputation folds} 
 \end{table}
 
-None of these t statistics are statistically significant using a two-tailed t-test with p=0.05, and so we cannot reject the null hypothesis
+None of these t-statistics are statistically significant using a two-tailed t-test with p=0.05, and so we cannot reject the null hypothesis
 that all the imputation methods have the same performance. However, dropping the genes makes the least sense, as that way some real data is
 lost.
 
@@ -171,7 +171,7 @@ it can show which models perform statistically better with each amount of labell
   \caption{TCGA 10-fold t-statistics between MLP, ladder and M2} 
 \end{table}
 
-The significance threshold for a two tailed t-test, using  p=0.05 and 9 degrees of freedom, is 2.26. These results 
+The significance threshold for a two tailed t-test, using p=0.05 and 9 degrees of freedom, is 2.26. These results 
 show the ladder network significantly outperforming the MLP at every amount of labelled data. The M2 model outperfoms the MLP significantly 
 until all the data is labelled. At this point the performance should be almost exactly the same as the MLP, as the training of the 
 classifier in the M2 model is only controlled by the supervised cross entropy loss. The ladder is outperformed by the M2 model with 100
@@ -183,8 +183,8 @@ Accuracy is not always the best metric to use when evaluating a machine learning
 imbalanced, as it can mean that predicting just the most populous classes results in good accuracy. For binary classification one of the 
 preferred methods is the Matthews correlation coefficient, which is regarded as 
 a balanced measure even when the classes are unbalanced because it takes into account the balance ratios of the four possible 
-categories~\cite{Chicco2017}. There is a multiclass variant of this 
-coefficient that ranges between a minimum value of between $-1$ and $0$
+categories~\cite{Chicco2017}. The multiclass variant of this 
+coefficient ranges between a minimum value of between $-1$ and $0$
 (depending on the distribution) and maximum value $+1$. $+1$ means perfect correlation between the predicted and actual labels. 
 This is calculated as below for $k$ classes: 
 
