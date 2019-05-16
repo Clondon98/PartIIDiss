@@ -2,7 +2,7 @@
 
 \textit{The aim of this project was to develop a semi-supervised autoencoder-based method for classifying 
 cells into phenotypes \footnote{the observable characteristics and traits of an organism} using genetic data. To this end a range 
-of autoencoder based semi-supervised models have been implemented, 
+of models have been implemented, 
 ranging from fairly simple to state-of-the-art. These models were then evaluated on selected datasets, including 
 the Cancer Genome Atlas expression data.}
 
@@ -41,8 +41,10 @@ using neural networks. This is advantageous because neural networks work well on
 also able to effectively analyse data with high dimensionality (number of features). Transcriptomes can
 often contain several thousand genes, and so models must be able to cope with this level of dimensionality.
 
-This project is also the first comparison on genomic data of the semi-supervised models described in Section~\ref{ss_models}, and is one of only a few
-studies to have performed semi-supervised deep learning on genomic data.
+This project is the first comparison on genomic data of the semi-supervised models described in Section~\ref{ss_models}, and is one of only a few
+studies to have performed semi-supervised deep learning on genomic data. The other outputs of this project are: a repository of semi-supervised
+models available online; a methodology for evaluating these models; and a simple command line tool to allow
+users unfamiliar with machine learning to perform semi-supervised learning.
 
 \begin{figure}[H]
 \centering\includegraphics[scale=.9]{figs/workflow.pdf}
