@@ -87,7 +87,7 @@ This is high when the probability of the correct label is low, because $\lim_{x 
 \subsection{Training the network} \label{train}
 
 Neural networks have their weights randomly initialised, and training a neural network involves adjusting them 
-($\vec{\theta}$) until the network reaches an acceptable loss or accuracy. This is done by computing 
+until the network reaches an acceptable loss or accuracy. This is done by computing 
 the gradients of the weights with respect to the loss, and updating the parameters to move the loss towards 
 a minimum.
 
@@ -98,7 +98,7 @@ The weights of a neural network can then be updated by first finding the gradien
 The process of computing these gradients is called \textbf{backpropagation} and a full derivation can be found in Appendix~\ref{backprop}. The important notation is:
 
 \begin{itemize}
-  \item $\theta$ is a vector of all the weights in the network
+  \item $\vec{\theta}$ is a vector of all the weights in the network
   \item $J(\vec{\theta})_k$ is the loss for the $kth$ sample in the training set
   \item $\nabla_{\vec{\theta}} J(\vec{\theta})_k$ is a vector of gradients of the loss with respect to all the weights 
 \end{itemize}
@@ -562,9 +562,7 @@ defined above, the requirements can be constructed:
 I had some previous knowledge about neural networks and machine learning techniques through completing \textit{Introduction to data science}
 and \textit{Artificial intelligence I} as part of Part IB. However,
 I had no previous experience with autoencoders and semi-supervised learning, and little experience of optimising 
-a machine learning model and Bayesian inference. To this end I decided upon a list of essential reading:~\cite{ML_Bayes}~\cite{Goodfellow-et-al-2016}
-~\cite{DBLP:journals/corr/KingmaW13}~\cite{DBLP:journals/corr/KingmaRMW14}~\cite{Vincent:2010:SDA:1756006.1953039}
-~\cite{DBLP:journals/corr/Valpola14}~\cite{DBLP:journals/corr/RasmusVHBR15}.
+a machine learning model and Bayesian inference. To this end I decided upon a list of essential reading:~\cite{ML_Bayes}~\cite{Goodfellow-et-al-2016}~\cite{DBLP:journals/corr/KingmaW13}~\cite{DBLP:journals/corr/KingmaRMW14}~\cite{Vincent:2010:SDA:1756006.1953039}~\cite{DBLP:journals/corr/Valpola14}~\cite{DBLP:journals/corr/RasmusVHBR15}.
 
 \section{Software engineering}
 
